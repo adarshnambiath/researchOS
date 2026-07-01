@@ -1,0 +1,55 @@
+# Research OS — Run & Flow Guide
+
+## Start the platform
+
+### Backend
+cd backend
+source .venv/bin/activate
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+Note: if you change backend code, restart uvicorn.
+
+### Frontend
+cd frontend
+npm run dev
+
+Open http://localhost:5173
+
+## General flow of events
+
+1. Register a dataset
+   - Provide an absolute path to a CSV.
+   - The platform reads the CSV once for metadata (columns, dtypes, preview).
+   - The original file is never copied.
+
+2. Create an experiment
+   - Choose a dataset.
+   - Define the research question / task type.
+
+3. Create a run
+   - Choose an experiment.
+   - Enter model name and provenance (git commit, repo URL, entry point).
+   - The platform auto-creates workspace/runs/run_<id>/.
+
+4. Produce outputs (outside the platform)
+   - Place files into the run output directory:
+     - evaluation.parquet
+     - metrics.json
+     - artifacts.json
+   - This is typically done by the researcher's SDK or training script.
+
+5. Sync outputs in the UI
+   - Go to Run Detail.
+   - Click Sync to scan the run directory and register recognized files.
+
+6. Investigate
+   - From Run Detail, open Investigation.
+   - View automatic insights (accuracy, confusion, distributions).
+   - Filter rows (all / correct / incorrect / false positive / false negative).
+   - Click a row to see evaluation row + matching dataset row by sample_id.
+
+## Notes
+- SQLite DB: research_os.db in project root.
+- Workspace root: configurable via WORKSPACE_ROOT env var (default: ./workspace).
+- No auth for MVP.
+- Evaluation engine is swappable (Pandas today, DuckDB later).
