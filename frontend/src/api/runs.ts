@@ -42,6 +42,22 @@ export interface RunCreate {
   environment_metadata?: Record<string, string>;
 }
 
+export interface RunUpdate {
+  model_name?: string;
+  notes?: string;
+  seed?: number;
+  git_commit?: string;
+  repository_url?: string;
+  entry_point?: string;
+  hyperparameters?: Record<string, string>;
+  framework?: string;
+  framework_version?: string;
+  python_version?: string;
+  sdk_version?: string;
+  execution_device?: string;
+  environment_metadata?: Record<string, string>;
+}
+
 export const fetchRuns = (experiment_id?: number) =>
   api
     .get<RunListItem[]>("/api/runs", {
@@ -54,6 +70,9 @@ export const fetchRun = (id: number) =>
 
 export const createRun = (payload: RunCreate) =>
   api.post<RunDetail>("/api/runs", payload).then((r) => r.data);
+
+export const updateRun = (id: number, payload: RunUpdate) =>
+  api.put<RunDetail>(`/api/runs/${id}`, payload).then((r) => r.data);
 
 export const deleteRun = (id: number) =>
   api.delete(`/api/runs/${id}`).then((r) => r.data);

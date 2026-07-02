@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { fetchDatasets, fetchDataset, createDataset, deleteDataset } from "../api/datasets";
+import type { DatasetUpdate } from "../api/datasets";
+import { fetchDatasets, fetchDataset, createDataset, deleteDataset, updateDataset } from "../api/datasets";
 
 export interface DatasetListItem {
   id: number;
@@ -27,6 +28,7 @@ export interface DatasetStore {
   load: () => Promise<void>;
   loadOne: (id: number) => Promise<void>;
   create: (payload: Parameters<typeof createDataset>[0]) => Promise<void>;
+  update: (id: number, payload: DatasetUpdate) => Promise<void>;
   remove: (id: number) => Promise<void>;
   clearSelected: () => void;
 }
@@ -64,6 +66,19 @@ export const useDatasetStore = create<DatasetStore>((set, get) => ({
     } catch (e) {
       set({ error: (e as Error).message, loading: false });
       throw e;
+    }
+  },
+  update: async (id, payload) => {
+    set({ loading: true, error: null });
+    try {
+      const updated = await updateDataset(id, payload);
+      set({
+        items: get().items.map((i) => (i.id === id ? updated : i)),
+        selected: get().selected && get().selected!.id === id ? updated : get().selected,
+        loading: false,
+      });
+    } catch (e) {
+      set({ error: (e as Error).message, loading: false });
     }
   },
   remove: async (id) => {

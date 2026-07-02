@@ -5,7 +5,7 @@ from app.database import get_db
 from app.repositories.dataset_repository import DatasetRepository
 from app.repositories.experiment_repository import ExperimentRepository
 from app.repositories.run_repository import RunRepository
-from app.schemas.experiment import ExperimentCreate, ExperimentDetail
+from app.schemas.experiment import ExperimentCreate, ExperimentDetail, ExperimentUpdate
 from app.services.experiment_service import ExperimentService
 
 router = APIRouter(prefix="/api/experiments", tags=["experiments"])
@@ -19,7 +19,7 @@ def get_service(db: Session = Depends(get_db)) -> ExperimentService:
     )
 
 
-@router.get("/", response_model=list[dict])
+@router.get("", response_model=list[dict])
 def list_experiments(
     dataset_id: int | None = None,
     service: ExperimentService = Depends(get_service),
@@ -27,7 +27,7 @@ def list_experiments(
     return service.list_all(dataset_id)
 
 
-@router.post("/", response_model=ExperimentDetail, status_code=201)
+@router.post("", response_model=ExperimentDetail, status_code=201)
 def create_experiment(
     payload: ExperimentCreate,
     service: ExperimentService = Depends(get_service),
@@ -44,6 +44,18 @@ def get_experiment(
     if not exp:
         raise HTTPException(status_code=404, detail="Experiment not found")
     return exp
+
+
+@router.put("/{experiment_id}", response_model=ExperimentDetail)
+def update_experiment(
+    experiment_id: int,
+    payload: ExperimentUpdate,
+    service: ExperimentService = Depends(get_service),
+):
+    experiment = service.update(experiment_id, payload)
+    if not experiment:
+        raise HTTPException(status_code=404, detail="Experiment not found")
+    return experiment
 
 
 @router.delete("/{experiment_id}", status_code=204)

@@ -5,7 +5,7 @@ from app.database import get_db
 from app.repositories.experiment_repository import ExperimentRepository
 from app.repositories.output_repository import OutputRepository
 from app.repositories.run_repository import RunRepository
-from app.schemas.run import RunCreate, RunDetail
+from app.schemas.run import RunCreate, RunDetail, RunUpdate
 from app.services.run_service import RunService
 
 router = APIRouter(prefix="/api/runs", tags=["runs"])
@@ -19,7 +19,7 @@ def get_service(db: Session = Depends(get_db)) -> RunService:
     )
 
 
-@router.get("/", response_model=list[dict])
+@router.get("", response_model=list[dict])
 def list_runs(
     experiment_id: int | None = None,
     service: RunService = Depends(get_service),
@@ -27,7 +27,7 @@ def list_runs(
     return service.list_all(experiment_id)
 
 
-@router.post("/", response_model=RunDetail, status_code=201)
+@router.post("", response_model=RunDetail, status_code=201)
 def create_run(payload: RunCreate, service: RunService = Depends(get_service)):
     return service.create(payload)
 
@@ -35,6 +35,18 @@ def create_run(payload: RunCreate, service: RunService = Depends(get_service)):
 @router.get("/{run_id}", response_model=RunDetail)
 def get_run(run_id: int, service: RunService = Depends(get_service)):
     run = service.get_detail(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="Run not found")
+    return run
+
+
+@router.put("/{run_id}", response_model=RunDetail)
+def update_run(
+    run_id: int,
+    payload: RunUpdate,
+    service: RunService = Depends(get_service),
+):
+    run = service.update(run_id, payload)
     if not run:
         raise HTTPException(status_code=404, detail="Run not found")
     return run

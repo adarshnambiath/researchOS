@@ -6,7 +6,7 @@ from app.config import settings
 from app.repositories.experiment_repository import ExperimentRepository
 from app.repositories.output_repository import OutputRepository
 from app.repositories.run_repository import RunRepository
-from app.schemas.run import RunCreate, RunDetail
+from app.schemas.run import RunCreate, RunDetail, RunUpdate
 
 
 class RunService:
@@ -120,6 +120,42 @@ class RunService:
                 }
             )
         return result
+
+    def update(self, run_id: int, data: RunUpdate) -> RunDetail | None:
+        db_obj = self.repo.get_by_id(run_id)
+        if not db_obj:
+            return None
+
+        update_data = data.model_dump(exclude_unset=True)
+        for key, value in update_data.items():
+            if key in {"hyperparameters", "environment_metadata"} and value is not None:
+                value = json.dumps(value)
+            setattr(db_obj, key, value)
+
+        self.repo.db.commit()
+        self.repo.db.refresh(db_obj)
+
+        experiment = self.experiment_repo.get_by_id(db_obj.experiment_id)
+        return RunDetail(
+            id=db_obj.id,
+            experiment_id=db_obj.experiment_id,
+            model_name=db_obj.model_name,
+            notes=db_obj.notes,
+            seed=db_obj.seed,
+            git_commit=db_obj.git_commit,
+            repository_url=db_obj.repository_url,
+            entry_point=db_obj.entry_point,
+            hyperparameters=json.loads(db_obj.hyperparameters_json) if db_obj.hyperparameters_json else None,
+            framework=db_obj.framework,
+            framework_version=db_obj.framework_version,
+            python_version=db_obj.python_version,
+            sdk_version=db_obj.sdk_version,
+            execution_device=db_obj.execution_device,
+            environment_metadata=json.loads(db_obj.environment_metadata) if db_obj.environment_metadata else None,
+            output_directory=db_obj.output_directory,
+            created_at=db_obj.created_at,
+            experiment_name=experiment.name if experiment else "",
+        )
 
     def delete(self, run_id: int) -> bool:
         db_obj = self.repo.get_by_id(run_id)

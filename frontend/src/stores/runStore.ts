@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { fetchRuns, fetchRun, createRun, deleteRun } from "../api/runs";
+import type { RunUpdate } from "../api/runs";
+import { fetchRuns, fetchRun, createRun, deleteRun, updateRun } from "../api/runs";
 import { syncOutputs, fetchOutputs } from "../api/outputs";
 
 export interface RunListItem {
@@ -36,6 +37,7 @@ export interface RunStore {
   load: (experiment_id?: number) => Promise<void>;
   loadOne: (id: number) => Promise<void>;
   create: (payload: Parameters<typeof createRun>[0]) => Promise<void>;
+  update: (id: number, payload: RunUpdate) => Promise<void>;
   remove: (id: number) => Promise<void>;
   loadOutputs: (runId: number) => Promise<void>;
   syncOutputs: (runId: number) => Promise<void>;
@@ -83,6 +85,19 @@ export const useRunStore = create<RunStore>((set, get) => ({
     try {
       await deleteRun(id);
       set({ items: get().items.filter((i) => i.id !== id), loading: false });
+    } catch (e) {
+      set({ error: (e as Error).message, loading: false });
+    }
+  },
+  update: async (id, payload) => {
+    set({ loading: true, error: null });
+    try {
+      const updated = await updateRun(id, payload);
+      set({
+        items: get().items.map((i) => (i.id === id ? updated : i)),
+        selected: get().selected && get().selected!.id === id ? updated : get().selected,
+        loading: false,
+      });
     } catch (e) {
       set({ error: (e as Error).message, loading: false });
     }

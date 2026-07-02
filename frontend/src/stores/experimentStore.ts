@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { fetchExperiments, fetchExperiment, createExperiment, deleteExperiment } from "../api/experiments";
+import { fetchExperiments, fetchExperiment, createExperiment, deleteExperiment, updateExperiment } from "../api/experiments";
 
 export interface ExperimentListItem {
   id: number;
@@ -20,6 +20,7 @@ export interface ExperimentStore {
   load: (dataset_id?: number) => Promise<void>;
   loadOne: (id: number) => Promise<void>;
   create: (payload: Parameters<typeof createExperiment>[0]) => Promise<void>;
+  update: (id: number, payload: { name?: string; description?: string; objective?: string; task?: string }) => Promise<void>;
   remove: (id: number) => Promise<void>;
   clearSelected: () => void;
 }
@@ -57,6 +58,19 @@ export const useExperimentStore = create<ExperimentStore>((set, get) => ({
     } catch (e) {
       set({ error: (e as Error).message, loading: false });
       throw e;
+    }
+  },
+  update: async (id, payload) => {
+    set({ loading: true, error: null });
+    try {
+      const updated = await updateExperiment(id, payload);
+      set({
+        items: get().items.map((i) => (i.id === id ? updated : i)),
+        selected: get().selected && get().selected!.id === id ? updated : get().selected,
+        loading: false,
+      });
+    } catch (e) {
+      set({ error: (e as Error).message, loading: false });
     }
   },
   remove: async (id) => {

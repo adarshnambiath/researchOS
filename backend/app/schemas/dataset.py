@@ -11,6 +11,14 @@ class DatasetCreate(BaseModel):
     sample_id_column: str | None = None
 
 
+class DatasetUpdate(BaseModel):
+    name: str | None = None
+    description: str | None = None
+    modality: str | None = None
+    label_column: str | None = None
+    sample_id_column: str | None = None
+
+
 class DatasetPreview(BaseModel):
     columns: list[str]
     dtypes: dict[str, str]

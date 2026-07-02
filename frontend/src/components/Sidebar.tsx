@@ -5,7 +5,6 @@ const navItems = [
   { to: "/", label: "Home", end: true },
   { to: "/datasets", label: "Datasets" },
   { to: "/experiments", label: "Experiments" },
-  { to: "/runs", label: "Runs" },
 ];
 
 export function Sidebar() {

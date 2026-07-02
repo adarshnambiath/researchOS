@@ -6,7 +6,7 @@ import pandas as pd
 
 from app.config import settings
 from app.repositories.dataset_repository import DatasetRepository
-from app.schemas.dataset import DatasetCreate, DatasetDetail
+from app.schemas.dataset import DatasetCreate, DatasetDetail, DatasetUpdate
 
 
 class DatasetService:
@@ -90,6 +90,19 @@ class DatasetService:
             }
             for d in datasets
         ]
+
+    def update(self, dataset_id: int, data: DatasetUpdate) -> DatasetDetail | None:
+        db_obj = self.repo.get_by_id(dataset_id)
+        if not db_obj:
+            return None
+
+        update_data = data.model_dump(exclude_unset=True)
+        for key, value in update_data.items():
+            setattr(db_obj, key, value)
+
+        self.repo.db.commit()
+        self.repo.db.refresh(db_obj)
+        return self.get_detail(dataset_id)
 
     def delete(self, dataset_id: int) -> bool:
         return self.repo.delete(dataset_id)

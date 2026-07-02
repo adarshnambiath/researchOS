@@ -1,13 +1,17 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
 import { useDatasetStore } from "../stores/datasetStore";
-
+import { FormField } from "../components/FormField";
+import { Modal } from "../components/Modal";
 import { formatDate } from "../lib/format";
 
 export function DatasetDetail() {
   const { id } = useParams();
-  const { selected, loading, error, loadOne, clearSelected } = useDatasetStore();
+  const { selected, loading, error, loadOne, clearSelected, update } = useDatasetStore();
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [form, setForm] = useState({ name: "", description: "", modality: "", label_column: "", sample_id_column: "" });
 
   useEffect(() => {
     if (id) loadOne(Number(id));
@@ -18,17 +22,42 @@ export function DatasetDetail() {
   if (error) return <div className="p-6 text-sm text-red-600">{error}</div>;
   if (!selected) return <div className="p-6 text-sm text-gray-500">Dataset not found.</div>;
 
+  const openEdit = () => {
+    setForm({
+      name: selected.name,
+      description: selected.description || "",
+      modality: selected.modality,
+      label_column: selected.label_column || "",
+      sample_id_column: selected.sample_id_column || "",
+    });
+    setEditOpen(true);
+  };
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await update(selected.id, {
+      name: form.name,
+      description: form.description || undefined,
+      modality: form.modality,
+      label_column: form.label_column || undefined,
+      sample_id_column: form.sample_id_column || undefined,
+    });
+    setEditOpen(false);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Link to="/datasets" className="text-sm text-gray-600 hover:text-gray-900">
-          <ArrowLeft className="h-4 w-4 inline mr-1" />
-          Back
+          <ArrowLeft className="h-4 w-4 inline mr-1" /> Back
         </Link>
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-semibold text-gray-900">{selected.name}</h1>
           <p className="text-sm text-gray-600">{selected.modality} · {(selected.preview_rows?.length ?? 0)} of {selected.row_count} rows shown</p>
         </div>
+        <button onClick={openEdit} className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50">
+          <Pencil className="h-4 w-4" /> Edit
+        </button>
       </div>
 
       <section className="rounded-lg border border-gray-200 p-6">
@@ -92,6 +121,34 @@ export function DatasetDetail() {
           </table>
         </div>
       </section>
+
+      {editOpen && (
+        <Modal title="Edit Dataset" onClose={() => setEditOpen(false)}>
+          <form onSubmit={onSubmit} className="space-y-4">
+            <FormField label="Name" required>
+              <input className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+            </FormField>
+            <FormField label="Modality">
+              <input className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" value={form.modality} onChange={(e) => setForm({ ...form, modality: e.target.value })} />
+            </FormField>
+            <FormField label="Description">
+              <textarea className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+            </FormField>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField label="Label Column">
+                <input className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" value={form.label_column} onChange={(e) => setForm({ ...form, label_column: e.target.value })} />
+              </FormField>
+              <FormField label="Sample ID Column">
+                <input className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" value={form.sample_id_column} onChange={(e) => setForm({ ...form, sample_id_column: e.target.value })} />
+              </FormField>
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button type="button" onClick={() => setEditOpen(false)} className="rounded-md border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50">Cancel</button>
+              <button type="submit" className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">Save</button>
+            </div>
+          </form>
+        </Modal>
+      )}
     </div>
   );
 }

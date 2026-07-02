@@ -2,7 +2,7 @@ from app.models.experiment import Experiment
 from app.repositories.dataset_repository import DatasetRepository
 from app.repositories.experiment_repository import ExperimentRepository
 from app.repositories.run_repository import RunRepository
-from app.schemas.experiment import ExperimentCreate, ExperimentDetail
+from app.schemas.experiment import ExperimentCreate, ExperimentDetail, ExperimentUpdate
 
 
 class ExperimentService:
@@ -81,6 +81,19 @@ class ExperimentService:
                 }
             )
         return result
+
+    def update(self, experiment_id: int, data: ExperimentUpdate) -> ExperimentDetail | None:
+        db_obj = self.repo.get_by_id(experiment_id)
+        if not db_obj:
+            return None
+
+        update_data = data.model_dump(exclude_unset=True)
+        for key, value in update_data.items():
+            setattr(db_obj, key, value)
+
+        self.repo.db.commit()
+        self.repo.db.refresh(db_obj)
+        return self.get_detail(experiment_id)
 
     def delete(self, experiment_id: int) -> bool:
         return self.repo.delete(experiment_id)

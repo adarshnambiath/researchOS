@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.repositories.dataset_repository import DatasetRepository
-from app.schemas.dataset import DatasetCreate, DatasetDetail
+from app.schemas.dataset import DatasetCreate, DatasetDetail, DatasetUpdate
 from app.services.dataset_service import DatasetService
 
 router = APIRouter(prefix="/api/datasets", tags=["datasets"])
@@ -23,12 +23,12 @@ def get_service(db: Session = Depends(get_db)) -> DatasetService:
     return DatasetService(DatasetRepository(db))
 
 
-@router.get("/", response_model=list[dict])
+@router.get("", response_model=list[dict])
 def list_datasets(service: DatasetService = Depends(get_service)):
     return service.list_all()
 
 
-@router.post("/", response_model=DatasetDetail, status_code=201)
+@router.post("", response_model=DatasetDetail, status_code=201)
 def register_dataset(payload: RegisterRequest, service: DatasetService = Depends(get_service)):
     result = service.register(
         DatasetCreate(
@@ -46,6 +46,18 @@ def register_dataset(payload: RegisterRequest, service: DatasetService = Depends
 @router.get("/{dataset_id}", response_model=DatasetDetail)
 def get_dataset(dataset_id: int, service: DatasetService = Depends(get_service)):
     dataset = service.get_detail(dataset_id)
+    if not dataset:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+    return dataset
+
+
+@router.put("/{dataset_id}", response_model=DatasetDetail)
+def update_dataset(
+    dataset_id: int,
+    payload: DatasetUpdate,
+    service: DatasetService = Depends(get_service),
+):
+    dataset = service.update(dataset_id, payload)
     if not dataset:
         raise HTTPException(status_code=404, detail="Dataset not found")
     return dataset

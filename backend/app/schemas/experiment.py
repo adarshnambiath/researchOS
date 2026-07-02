@@ -11,6 +11,13 @@ class ExperimentCreate(BaseModel):
     task: str = Field(default="classification", max_length=100)
 
 
+class ExperimentUpdate(BaseModel):
+    name: str | None = None
+    description: str | None = None
+    objective: str | None = None
+    task: str | None = None
+
+
 class ExperimentList(BaseModel):
     id: int
     dataset_id: int

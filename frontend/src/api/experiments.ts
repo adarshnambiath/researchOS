@@ -39,3 +39,6 @@ export const createExperiment = (payload: ExperimentCreate) =>
 
 export const deleteExperiment = (id: number) =>
   api.delete(`/api/experiments/${id}`).then((r) => r.data);
+
+export const updateExperiment = (id: number, payload: { name?: string; description?: string; objective?: string; task?: string }) =>
+  api.put<ExperimentDetail>(`/api/experiments/${id}`, payload).then((r) => r.data);

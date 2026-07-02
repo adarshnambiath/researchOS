@@ -1,13 +1,30 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
 import { useRunStore } from "../stores/runStore";
 import { CodeBlock } from "../components/CodeBlock";
+import { FormField } from "../components/FormField";
+import { Modal } from "../components/Modal";
 import { formatDate, formatBytes } from "../lib/format";
 
 export function RunDetail() {
   const { id } = useParams();
-  const { selected, outputItems, loading, error, loadOne, loadOutputs, clearSelected } = useRunStore();
+  const { selected, outputItems, loading, error, loadOne, loadOutputs, clearSelected, update } = useRunStore();
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [form, setForm] = useState({
+    model_name: "",
+    notes: "",
+    seed: "",
+    git_commit: "",
+    repository_url: "",
+    entry_point: "",
+    framework: "",
+    framework_version: "",
+    python_version: "",
+    sdk_version: "",
+    execution_device: "",
+  });
 
   useEffect(() => {
     if (id) {
@@ -28,16 +45,54 @@ research_os.write_metrics(output_dir, {accuracy: 0.9, f1: 0.88})
 research_os.write_artifacts(output_dir, {model: "model.pkl", plot: "plot.png"})`
     : "# Output directory unavailable";
 
+  const openEdit = () => {
+    setForm({
+      model_name: selected.model_name,
+      notes: selected.notes || "",
+      seed: selected.seed != null ? String(selected.seed) : "",
+      git_commit: selected.git_commit || "",
+      repository_url: selected.repository_url || "",
+      entry_point: selected.entry_point || "",
+      framework: selected.framework || "",
+      framework_version: selected.framework_version || "",
+      python_version: selected.python_version || "",
+      sdk_version: selected.sdk_version || "",
+      execution_device: selected.execution_device || "",
+    });
+    setEditOpen(true);
+  };
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await update(selected.id, {
+      model_name: form.model_name,
+      notes: form.notes || undefined,
+      seed: form.seed ? Number(form.seed) : undefined,
+      git_commit: form.git_commit || undefined,
+      repository_url: form.repository_url || undefined,
+      entry_point: form.entry_point || undefined,
+      framework: form.framework || undefined,
+      framework_version: form.framework_version || undefined,
+      python_version: form.python_version || undefined,
+      sdk_version: form.sdk_version || undefined,
+      execution_device: form.execution_device || undefined,
+    });
+    setEditOpen(false);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link to="/runs" className="text-sm text-gray-600 hover:text-gray-900">
+        <Link to={`/experiments/${(selected as any).experiment_id}`} className="text-sm text-gray-600 hover:text-gray-900">
           <ArrowLeft className="h-4 w-4 inline mr-1" /> Back
         </Link>
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-semibold text-gray-900">{selected.model_name}</h1>
           <p className="text-sm text-gray-600">{selected.experiment_name} · {outputItems.length} output files</p>
         </div>
+        <button onClick={openEdit} className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50">
+          <Pencil className="h-4 w-4" /> Edit
+        </button>
       </div>
 
       <section className="rounded-lg border border-gray-200 p-6">
@@ -101,6 +156,40 @@ research_os.write_artifacts(output_dir, {model: "model.pkl", plot: "plot.png"})`
           </div>
         )}
       </section>
+
+      {editOpen && (
+        <Modal title="Edit Run" onClose={() => setEditOpen(false)}>
+          <form onSubmit={onSubmit} className="space-y-4">
+            <FormField label="Model Name" required>
+              <input className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" value={form.model_name} onChange={(e) => setForm({ ...form, model_name: e.target.value })} required />
+            </FormField>
+            <FormField label="Notes">
+              <textarea className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+            </FormField>
+            <FormField label="Seed">
+              <input type="number" className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" value={form.seed} onChange={(e) => setForm({ ...form, seed: e.target.value })} />
+            </FormField>
+            <div className="grid grid-cols-2 gap-4">
+              <FormField label="Framework">
+                <input className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" value={form.framework} onChange={(e) => setForm({ ...form, framework: e.target.value })} />
+              </FormField>
+              <FormField label="Execution Device">
+                <input className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" value={form.execution_device} onChange={(e) => setForm({ ...form, execution_device: e.target.value })} />
+              </FormField>
+            </div>
+            <FormField label="Git Commit">
+              <input className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" value={form.git_commit} onChange={(e) => setForm({ ...form, git_commit: e.target.value })} />
+            </FormField>
+            <FormField label="Repository URL">
+              <input className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" value={form.repository_url} onChange={(e) => setForm({ ...form, repository_url: e.target.value })} />
+            </FormField>
+            <div className="mt-6 flex justify-end gap-3">
+              <button type="button" onClick={() => setEditOpen(false)} className="rounded-md border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50">Cancel</button>
+              <button type="submit" className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">Save</button>
+            </div>
+          </form>
+        </Modal>
+      )}
     </div>
   );
 }

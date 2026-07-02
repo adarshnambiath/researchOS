@@ -26,9 +26,9 @@ Open http://localhost:5173
    - Choose a dataset.
    - Define the research question / task type.
 
-3. Create a run
-   - Choose an experiment.
-   - Enter model name and provenance (git commit, repo URL, entry point).
+3. Create a run (from experiment detail)
+   - Open an experiment.
+   - Add a run with model name, notes, seed, provenance.
    - The platform auto-creates workspace/runs/run_<id>/.
 
 4. Produce outputs (outside the platform)
@@ -48,8 +48,15 @@ Open http://localhost:5173
    - Filter rows (all / correct / incorrect / false positive / false negative).
    - Click a row to see evaluation row + matching dataset row by sample_id.
 
+## Editing entities
+- Datasets: open dataset detail → Edit button → update name, modality, description, label/sample id columns.
+- Experiments: open experiment detail → Edit button → update name, description, objective, task.
+- Runs: open run detail → Edit button → update model name, notes, seed, git, framework, device, etc.
+
 ## Notes
 - SQLite DB: research_os.db in project root.
 - Workspace root: configurable via WORKSPACE_ROOT env var (default: ./workspace).
 - No auth for MVP.
 - Evaluation engine is swappable (Pandas today, DuckDB later).
+- CORS is configured for localhost:5173.
+- trailing-slash redirects are disabled.

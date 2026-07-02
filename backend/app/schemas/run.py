@@ -20,6 +20,22 @@ class RunCreate(BaseModel):
     environment_metadata: dict[str, str] | None = None
 
 
+class RunUpdate(BaseModel):
+    model_name: str | None = None
+    notes: str | None = None
+    seed: int | None = None
+    git_commit: str | None = None
+    repository_url: str | None = None
+    entry_point: str | None = None
+    hyperparameters: dict[str, str] | None = None
+    framework: str | None = None
+    framework_version: str | None = None
+    python_version: str | None = None
+    sdk_version: str | None = None
+    execution_device: str | None = None
+    environment_metadata: dict[str, str] | None = None
+
+
 class RunList(BaseModel):
     id: int
     experiment_id: int

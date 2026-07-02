@@ -28,6 +28,14 @@ export interface DatasetCreate {
   sample_id_column?: string;
 }
 
+export interface DatasetUpdate {
+  name?: string;
+  description?: string;
+  modality?: string;
+  label_column?: string;
+  sample_id_column?: string;
+}
+
 export const fetchDatasets = () => api.get<DatasetListItem[]>("/api/datasets").then((r) => r.data);
 
 export const fetchDataset = (id: number) =>
@@ -35,6 +43,9 @@ export const fetchDataset = (id: number) =>
 
 export const createDataset = (payload: DatasetCreate) =>
   api.post<DatasetDetail>("/api/datasets", payload).then((r) => r.data);
+
+export const updateDataset = (id: number, payload: DatasetUpdate) =>
+  api.put<DatasetDetail>(`/api/datasets/${id}`, payload).then((r) => r.data);
 
 export const deleteDataset = (id: number) =>
   api.delete(`/api/datasets/${id}`).then((r) => r.data);
