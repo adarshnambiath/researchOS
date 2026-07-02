@@ -18,7 +18,7 @@ def get_run_repo(db: Session = Depends(get_db)) -> RunRepository:
     return RunRepository(db)
 
 
-@router.get("/", response_model=list[dict])
+@router.get("", response_model=list[dict])
 def list_outputs(run_id: int, service: OutputService = Depends(get_service)):
     return service.list_outputs(run_id)
 
