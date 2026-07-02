@@ -1,5 +1,4 @@
 import { NavLink } from "react-router-dom";
-import { FlaskConical } from "lucide-react";
 
 const navItems = [
   { to: "/", label: "Home", end: true },
@@ -11,7 +10,6 @@ export function Sidebar() {
   return (
     <aside className="fixed left-0 top-0 h-screen w-64 border-r border-gray-200 bg-white">
       <div className="flex h-16 items-center gap-2 border-b border-gray-200 px-4">
-        <FlaskConical className="h-6 w-6" />
         <span className="text-lg font-semibold tracking-tight">Research OS</span>
       </div>
       <nav className="p-3 space-y-1">

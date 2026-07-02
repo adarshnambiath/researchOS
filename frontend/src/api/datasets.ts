@@ -13,10 +13,24 @@ export interface DatasetDetail extends DatasetListItem {
   source_path: string;
   label_column: string | null;
   sample_id_column: string | null;
-  columns: string[] | null;
-  dtypes: Record<string, string> | null;
-  preview_rows: Array<Record<string, unknown>> | null;
+  dataset_schema: Array<{
+    name: string;
+    type: string;
+    nullable: boolean;
+    missing_count?: number;
+    unique_count?: number;
+    minimum?: number | string;
+    maximum?: number | string;
+    mean?: number;
+    categories?: string[];
+    units?: string;
+  }> | null;
   created_at: string;
+}
+
+export interface DatasetPreview {
+  columns: string[];
+  rows: Array<Record<string, unknown>>;
 }
 
 export interface DatasetCreate {
@@ -36,10 +50,14 @@ export interface DatasetUpdate {
   sample_id_column?: string;
 }
 
-export const fetchDatasets = () => api.get<DatasetListItem[]>("/api/datasets").then((r) => r.data);
+export const fetchDatasets = () =>
+  api.get<DatasetListItem[]>("/api/datasets").then((r) => r.data);
 
 export const fetchDataset = (id: number) =>
   api.get<DatasetDetail>(`/api/datasets/${id}`).then((r) => r.data);
+
+export const fetchDatasetPreview = (id: number) =>
+  api.get<DatasetPreview>(`/api/datasets/${id}/preview`).then((r) => r.data);
 
 export const createDataset = (payload: DatasetCreate) =>
   api.post<DatasetDetail>("/api/datasets", payload).then((r) => r.data);

@@ -2,7 +2,6 @@ from app.schemas.dataset import (
     DatasetCreate,
     DatasetDetail,
     DatasetList,
-    DatasetPreview,
 )
 from app.schemas.experiment import (
     ExperimentCreate,
@@ -22,7 +21,6 @@ __all__ = [
     "DatasetCreate",
     "DatasetDetail",
     "DatasetList",
-    "DatasetPreview",
     "ExperimentCreate",
     "ExperimentDetail",
     "ExperimentList",

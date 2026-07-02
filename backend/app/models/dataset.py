@@ -17,10 +17,7 @@ class Dataset(Base):
     label_column: Mapped[str | None] = mapped_column(String(255), nullable=True)
     sample_id_column: Mapped[str | None] = mapped_column(String(255), nullable=True)
     row_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    columns_json: Mapped[str | None] = mapped_column(Text, nullable=True)
-    dtypes_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     schema_json: Mapped[str | None] = mapped_column(Text, nullable=True)
-    preview_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.now()
     )
@@ -30,4 +27,4 @@ class Dataset(Base):
     )
 
     def __repr__(self) -> str:
-        return f"<Dataset(id={self.id}, name='{self.name}', rows={self.row_count})>"
+        return f"<Dataset(id={self.id}, name={self.name!r}, rows={self.row_count})>"

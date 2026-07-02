@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import type { DatasetUpdate } from "../api/datasets";
-import { fetchDatasets, fetchDataset, createDataset, deleteDataset, updateDataset } from "../api/datasets";
+import type { DatasetUpdate, DatasetPreview } from "../api/datasets";
+import { fetchDatasets, fetchDataset, fetchDatasetPreview, createDataset, deleteDataset, updateDataset } from "../api/datasets";
 
 export interface DatasetListItem {
   id: number;
@@ -17,16 +17,20 @@ export interface DatasetStore {
     source_path: string;
     label_column: string | null;
     sample_id_column: string | null;
-    columns: string[] | null;
-    dtypes: Record<string, string> | null;
-    preview_rows: Array<Record<string, unknown>> | null;
+    dataset_schema: Array<{
+      name: string;
+      type: string;
+      nullable: boolean;
+    }> | null;
   } | null;
+  preview: DatasetPreview | null;
   loading: boolean;
   error: string | null;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   load: () => Promise<void>;
   loadOne: (id: number) => Promise<void>;
+  loadPreview: (id: number) => Promise<void>;
   create: (payload: Parameters<typeof createDataset>[0]) => Promise<void>;
   update: (id: number, payload: DatasetUpdate) => Promise<void>;
   remove: (id: number) => Promise<void>;
@@ -36,6 +40,7 @@ export interface DatasetStore {
 export const useDatasetStore = create<DatasetStore>((set, get) => ({
   items: [],
   selected: null,
+  preview: null,
   loading: false,
   error: null,
   setLoading: (loading) => set({ loading }),
@@ -56,6 +61,14 @@ export const useDatasetStore = create<DatasetStore>((set, get) => ({
       set({ selected, loading: false });
     } catch (e) {
       set({ error: (e as Error).message, loading: false });
+    }
+  },
+  loadPreview: async (id) => {
+    try {
+      const preview = await fetchDatasetPreview(id);
+      set({ preview });
+    } catch (e) {
+      console.error("Failed to load dataset preview:", e);
     }
   },
   create: async (payload) => {
@@ -90,5 +103,5 @@ export const useDatasetStore = create<DatasetStore>((set, get) => ({
       set({ error: (e as Error).message, loading: false });
     }
   },
-  clearSelected: () => set({ selected: null }),
+  clearSelected: () => set({ selected: null, preview: null }),
 }));

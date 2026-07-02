@@ -1,18 +1,21 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.repositories.dataset_repository import DatasetRepository
-from app.schemas.dataset import DatasetCreate, DatasetDetail, DatasetUpdate
+from app.schemas.dataset import DatasetCreate, DatasetDetail, DatasetPreview, DatasetUpdate
 from app.services.dataset_service import DatasetService
 
 router = APIRouter(prefix="/api/datasets", tags=["datasets"])
 
 
 class RegisterRequest(BaseModel):
-    name: str = Field(..., min_length=1, max_length=255, description="Human-readable name for the dataset")
-    source_path: str = Field(..., min_length=1, description="Absolute path to the CSV on the researcher's machine")
+    name: str = Field(..., min_length=1, max_length=255)
+    source_path: str = Field(..., min_length=1)
     description: str | None = None
     modality: str = Field(default="tabular", max_length=50)
     label_column: str | None = None
@@ -51,6 +54,14 @@ def get_dataset(dataset_id: int, service: DatasetService = Depends(get_service))
     return dataset
 
 
+@router.get("/{dataset_id}/preview", response_model=DatasetPreview)
+def preview_dataset(dataset_id: int, service: DatasetService = Depends(get_service)):
+    preview = service.read_preview(dataset_id)
+    if not preview:
+        raise HTTPException(status_code=404, detail="Dataset not found or unreadable")
+    return preview
+
+
 @router.put("/{dataset_id}", response_model=DatasetDetail)
 def update_dataset(
     dataset_id: int,
@@ -69,4 +80,3 @@ def delete_dataset(dataset_id: int, service: DatasetService = Depends(get_servic
     if not success:
         raise HTTPException(status_code=404, detail="Dataset not found")
     return None
-

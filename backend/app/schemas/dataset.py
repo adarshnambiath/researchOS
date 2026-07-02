@@ -1,6 +1,47 @@
 from datetime import datetime
+from enum import Enum
+from typing import Any
 
 from pydantic import BaseModel, Field
+
+
+class PlatformType(str, Enum):
+    STRING = "string"
+    INTEGER = "integer"
+    FLOAT = "float"
+    BOOLEAN = "boolean"
+    DATE = "date"
+    DATETIME = "datetime"
+    TIME = "time"
+    CATEGORICAL = "categorical"
+    UNKNOWN = "unknown"
+
+
+class ColumnMetadata(BaseModel):
+    name: str
+    type: PlatformType
+    nullable: bool = False
+    missing_count: int | None = None
+    unique_count: int | None = None
+    minimum: Any | None = None
+    maximum: Any | None = None
+    mean: float | None = None
+    categories: list[str] | None = None
+    units: str | None = None
+
+
+class DatasetMetadata(BaseModel):
+    columns: list[ColumnMetadata]
+    row_count: int
+
+    def to_schema_json(self) -> str:
+        return self.model_dump_json()
+
+    @classmethod
+    def from_schema_json(cls, raw: str | None) -> "DatasetMetadata | None":
+        if not raw:
+            return None
+        return cls.model_validate_json(raw)
 
 
 class DatasetCreate(BaseModel):
@@ -17,13 +58,6 @@ class DatasetUpdate(BaseModel):
     modality: str | None = None
     label_column: str | None = None
     sample_id_column: str | None = None
-
-
-class DatasetPreview(BaseModel):
-    columns: list[str]
-    dtypes: dict[str, str]
-    row_count: int
-    preview_rows: list[dict]
 
 
 class DatasetList(BaseModel):
@@ -45,9 +79,12 @@ class DatasetDetail(BaseModel):
     label_column: str | None
     sample_id_column: str | None
     row_count: int
-    columns: list[str] | None
-    dtypes: dict[str, str] | None
-    preview_rows: list[dict] | None
+    dataset_schema: list[ColumnMetadata] | None
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class DatasetPreview(BaseModel):
+    columns: list[str]
+    rows: list[dict]
