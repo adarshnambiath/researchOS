@@ -9,8 +9,9 @@ import { formatNumber } from "../lib/format";
 import type { RowDetail } from "../api/investigation";
 
 export function Investigation() {
-  const { id } = useParams();
+  const { experimentId, runId } = useParams();
   const navigate = useNavigate();
+  const effectiveId = runId || experimentId;
   const { selected } = useRunStore();
   const [insights, setInsights] = useState<any>(null);
   const [rows, setRows] = useState<Array<Record<string, any>>>([]);
@@ -23,25 +24,25 @@ export function Investigation() {
   const limit = 50;
 
   useEffect(() => {
-    if (!id) return;
+    if (!effectiveId) return;
     setLoading(true);
-    computeInsights(Number(id))
+    computeInsights(Number(effectiveId))
       .then((data) => setInsights(data))
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [effectiveId]);
 
   useEffect(() => {
-    if (!id) return;
+    if (!effectiveId) return;
     setLoading(true);
-    queryEvaluation(Number(id), { preset, limit, offset })
+    queryEvaluation(Number(effectiveId), { preset, limit, offset })
       .then((result) => {
         setRows(result.rows);
         setTotal(result.total);
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [id, preset, offset]);
+  }, [effectiveId, preset, offset]);
 
   const columns = useMemo(() => {
     if (!rows.length) return [];
@@ -52,17 +53,17 @@ export function Investigation() {
   }, [rows]);
 
   const onRowClick = async (row: Record<string, any>) => {
-    if (!id) return;
+    if (!effectiveId) return;
     const index = rows.indexOf(row);
     if (index < 0) return;
-    const detail = await getRowDetail(Number(id), offset + index);
+    const detail = await getRowDetail(Number(effectiveId), offset + index);
     setSelectedRow(detail);
   };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4">
-        <button onClick={() => navigate(`/runs/${id}`)} className="text-sm text-gray-600 hover:text-gray-900">
+        <button onClick={() => navigate(experimentId ? `/experiments/${experimentId}/runs/${runId}` : `/runs/${effectiveId}`)} className="text-sm text-gray-600 hover:text-gray-900">
           <ArrowLeft className="h-4 w-4 inline mr-1" /> Back to run
         </button>
         <h1 className="text-2xl font-semibold text-gray-900">{selected?.model_name ?? "Investigation"}</h1>

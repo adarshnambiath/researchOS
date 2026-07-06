@@ -11,6 +11,7 @@ export interface RunListItem {
   framework: string | null;
   created_at: string;
   has_evaluation: boolean;
+  task: string;
 }
 
 export interface RunStore {
@@ -28,6 +29,7 @@ export interface RunStore {
     environment_metadata: Record<string, string> | null;
     output_directory: string | null;
     experiment_name: string;
+    task: string;
   } | null;
   outputItems: OutputDetection[];
   loading: boolean;

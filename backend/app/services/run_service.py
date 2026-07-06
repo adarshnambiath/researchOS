@@ -20,6 +20,40 @@ class RunService:
         self.experiment_repo = experiment_repo
         self.output_repo = output_repo
 
+    def _experiment_task(self, db_obj) -> str:
+        """Derive task from the eagerly loaded experiment relationship."""
+        if db_obj.experiment is not None:
+            return db_obj.experiment.task
+        return "classification"
+
+    def _experiment_name(self, db_obj) -> str:
+        if db_obj.experiment is not None:
+            return db_obj.experiment.name
+        return ""
+
+    def _to_detail(self, db_obj) -> RunDetail:
+        return RunDetail(
+            id=db_obj.id,
+            experiment_id=db_obj.experiment_id,
+            model_name=db_obj.model_name,
+            notes=db_obj.notes,
+            seed=db_obj.seed,
+            git_commit=db_obj.git_commit,
+            repository_url=db_obj.repository_url,
+            entry_point=db_obj.entry_point,
+            hyperparameters=json.loads(db_obj.hyperparameters_json) if db_obj.hyperparameters_json else None,
+            framework=db_obj.framework,
+            framework_version=db_obj.framework_version,
+            python_version=db_obj.python_version,
+            sdk_version=db_obj.sdk_version,
+            execution_device=db_obj.execution_device,
+            environment_metadata=json.loads(db_obj.environment_metadata) if db_obj.environment_metadata else None,
+            output_directory=db_obj.output_directory,
+            created_at=db_obj.created_at,
+            experiment_name=self._experiment_name(db_obj),
+            task=self._experiment_task(db_obj),
+        )
+
     def create(self, data: RunCreate) -> RunDetail:
         experiment = self.experiment_repo.get_by_id(data.experiment_id)
         if not experiment:
@@ -42,62 +76,26 @@ class RunService:
             environment_metadata=json.dumps(data.environment_metadata) if data.environment_metadata else None,
         )
 
-        # Create run output directory
-        run_dir = Path(settings.workspace_root) / "runs" / f"run_{db_obj.id}"
+        # Create run output directory nested under experiment
+        run_dir = (
+            Path(settings.workspace_root)
+            / "experiments"
+            / f"experiment_{db_obj.experiment_id}"
+            / f"run_{db_obj.id}"
+        )
         run_dir.mkdir(parents=True, exist_ok=True)
 
         db_obj.output_directory = str(run_dir)
         self.repo.db.commit()
         self.repo.db.refresh(db_obj)
 
-        return RunDetail(
-            id=db_obj.id,
-            experiment_id=db_obj.experiment_id,
-            model_name=db_obj.model_name,
-            notes=db_obj.notes,
-            seed=db_obj.seed,
-            git_commit=db_obj.git_commit,
-            repository_url=db_obj.repository_url,
-            entry_point=db_obj.entry_point,
-            hyperparameters=json.loads(db_obj.hyperparameters_json) if db_obj.hyperparameters_json else None,
-            framework=db_obj.framework,
-            framework_version=db_obj.framework_version,
-            python_version=db_obj.python_version,
-            sdk_version=db_obj.sdk_version,
-            execution_device=db_obj.execution_device,
-            environment_metadata=json.loads(db_obj.environment_metadata) if db_obj.environment_metadata else None,
-            output_directory=db_obj.output_directory,
-            created_at=db_obj.created_at,
-            experiment_name=experiment.name,
-        )
+        return self._to_detail(db_obj)
 
     def get_detail(self, run_id: int) -> RunDetail | None:
         db_obj = self.repo.get_by_id(run_id)
         if not db_obj:
             return None
-
-        experiment = self.experiment_repo.get_by_id(db_obj.experiment_id)
-
-        return RunDetail(
-            id=db_obj.id,
-            experiment_id=db_obj.experiment_id,
-            model_name=db_obj.model_name,
-            notes=db_obj.notes,
-            seed=db_obj.seed,
-            git_commit=db_obj.git_commit,
-            repository_url=db_obj.repository_url,
-            entry_point=db_obj.entry_point,
-            hyperparameters=json.loads(db_obj.hyperparameters_json) if db_obj.hyperparameters_json else None,
-            framework=db_obj.framework,
-            framework_version=db_obj.framework_version,
-            python_version=db_obj.python_version,
-            sdk_version=db_obj.sdk_version,
-            execution_device=db_obj.execution_device,
-            environment_metadata=json.loads(db_obj.environment_metadata) if db_obj.environment_metadata else None,
-            output_directory=db_obj.output_directory,
-            created_at=db_obj.created_at,
-            experiment_name=experiment.name if experiment else "",
-        )
+        return self._to_detail(db_obj)
 
     def list_all(self, experiment_id: int | None = None) -> list[dict]:
         if experiment_id:
@@ -117,6 +115,7 @@ class RunService:
                     "framework": run.framework,
                     "created_at": run.created_at.isoformat(),
                     "has_evaluation": evaluation is not None,
+                    "task": self._experiment_task(run),
                 }
             )
         return result
@@ -135,27 +134,7 @@ class RunService:
         self.repo.db.commit()
         self.repo.db.refresh(db_obj)
 
-        experiment = self.experiment_repo.get_by_id(db_obj.experiment_id)
-        return RunDetail(
-            id=db_obj.id,
-            experiment_id=db_obj.experiment_id,
-            model_name=db_obj.model_name,
-            notes=db_obj.notes,
-            seed=db_obj.seed,
-            git_commit=db_obj.git_commit,
-            repository_url=db_obj.repository_url,
-            entry_point=db_obj.entry_point,
-            hyperparameters=json.loads(db_obj.hyperparameters_json) if db_obj.hyperparameters_json else None,
-            framework=db_obj.framework,
-            framework_version=db_obj.framework_version,
-            python_version=db_obj.python_version,
-            sdk_version=db_obj.sdk_version,
-            execution_device=db_obj.execution_device,
-            environment_metadata=json.loads(db_obj.environment_metadata) if db_obj.environment_metadata else None,
-            output_directory=db_obj.output_directory,
-            created_at=db_obj.created_at,
-            experiment_name=experiment.name if experiment else "",
-        )
+        return self._to_detail(db_obj)
 
     def delete(self, run_id: int) -> bool:
         db_obj = self.repo.get_by_id(run_id)

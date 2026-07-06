@@ -82,7 +82,7 @@ export function Runs() {
             },
           ]}
           data={filteredItems as never[]}
-          onRowClick={(row) => (window.location.href = `/runs/${(row as any).id}`)}
+          onRowClick={(row) => (window.location.href = `/experiments/${(row as any).experiment_id}/runs/${(row as any).id}`)}
           empty={<EmptyState title="No runs" description="Create a run to produce outputs." />}
         />
       )}

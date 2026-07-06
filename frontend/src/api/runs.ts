@@ -8,6 +8,7 @@ export interface RunListItem {
   framework: string | null;
   created_at: string;
   has_evaluation: boolean;
+  task: string;
 }
 
 export interface RunDetail extends RunListItem {
@@ -58,6 +59,8 @@ export interface RunUpdate {
   environment_metadata?: Record<string, string>;
 }
 
+// ── Global endpoints (legacy / internal) ─────────────────────
+
 export const fetchRuns = (experiment_id?: number) =>
   api
     .get<RunListItem[]>("/api/runs", {
@@ -76,3 +79,23 @@ export const updateRun = (id: number, payload: RunUpdate) =>
 
 export const deleteRun = (id: number) =>
   api.delete(`/api/runs/${id}`).then((r) => r.data);
+
+// ── Nested endpoints (primary) ──────────────────────────────
+
+export const fetchExperimentRuns = (experimentId: number) =>
+  api
+    .get<RunListItem[]>(`/api/experiments/${experimentId}/runs`)
+    .then((r) => r.data);
+
+export const createExperimentRun = (experimentId: number, payload: RunCreate) =>
+  api
+    .post<RunDetail>(`/api/experiments/${experimentId}/runs`, {
+      ...payload,
+      experiment_id: experimentId,
+    })
+    .then((r) => r.data);
+
+export const fetchExperimentRun = (experimentId: number, runId: number) =>
+  api
+    .get<RunDetail>(`/api/experiments/${experimentId}/runs/${runId}`)
+    .then((r) => r.data);

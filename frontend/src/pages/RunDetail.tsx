@@ -16,8 +16,9 @@ const RECOGNIZED_FILES = [
 ];
 
 export function RunDetail() {
-  const { id } = useParams();
+  const { experimentId, runId } = useParams();
   const { selected, outputItems, loading, error, loadOne, loadOutputs, clearSelected, update } = useRunStore();
+  const effectiveId = runId || experimentId;
 
   const [editOpen, setEditOpen] = useState(false);
   const [sdkTab, setSdkTab] = useState<"manual" | "prompt">("manual");
@@ -36,12 +37,12 @@ export function RunDetail() {
   });
 
   useEffect(() => {
-    if (id) {
-      loadOne(Number(id));
-      loadOutputs(Number(id));
+    if (effectiveId) {
+      loadOne(Number(effectiveId));
+      loadOutputs(Number(effectiveId));
     }
     return () => clearSelected();
-  }, [id, loadOne, loadOutputs, clearSelected]);
+  }, [effectiveId, loadOne, loadOutputs, clearSelected]);
 
   if (loading) return <div className="p-6 text-sm text-gray-500">Loading…</div>;
   if (error) return <div className="p-6 text-sm text-red-600">{error}</div>;
@@ -63,7 +64,7 @@ session = ExperimentSession(
 
 ...
 session.publish_evaluation(
-    task="classification",
+    task="${selected.task}",
     sample_ids=sample_ids,
     ground_truth=y_true,
     predictions=y_pred,

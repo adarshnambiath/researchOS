@@ -169,7 +169,7 @@ export function ExperimentDetail() {
                   <tr
                     key={run.id}
                     className="cursor-pointer hover:bg-gray-50"
-                    onClick={() => navigate(`/runs/${run.id}`)}
+                    onClick={() => navigate(`/experiments/${selected.id}/runs/${run.id}`)}
                   >
                     <td className="px-4 py-2">{run.id}</td>
                     <td className="px-4 py-2">{run.model_name}</td>

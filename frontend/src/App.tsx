@@ -18,6 +18,8 @@ export default function App() {
         <Route path="/datasets/:id" element={<DatasetDetail />} />
         <Route path="/experiments" element={<Experiments />} />
         <Route path="/experiments/:id" element={<ExperimentDetail />} />
+        <Route path="/experiments/:experimentId/runs/:runId" element={<RunDetail />} />
+        <Route path="/experiments/:experimentId/runs/:runId/investigate" element={<Investigation />} />
         <Route path="/runs" element={<Runs />} />
         <Route path="/runs/:id" element={<RunDetail />} />
         <Route path="/runs/:id/investigate" element={<Investigation />} />

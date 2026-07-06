@@ -6,6 +6,8 @@ export const ROUTES = {
   DATASET_DETAIL: "/datasets/:id",
   EXPERIMENTS: "/experiments",
   EXPERIMENT_DETAIL: "/experiments/:id",
+  EXPERIMENT_RUN_DETAIL: "/experiments/:experimentId/runs/:runId",
+  EXPERIMENT_RUN_INVESTIGATE: "/experiments/:experimentId/runs/:runId/investigate",
   RUNS: "/runs",
   RUN_DETAIL: "/runs/:id",
   INVESTIGATION: "/runs/:id/investigate",

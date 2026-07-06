@@ -44,6 +44,7 @@ class RunList(BaseModel):
     framework: str | None
     created_at: datetime
     has_evaluation: bool = False
+    task: str = "classification"
 
     model_config = {"from_attributes": True}
 
@@ -67,5 +68,6 @@ class RunDetail(BaseModel):
     output_directory: str | None
     created_at: datetime
     experiment_name: str = ""
+    task: str = "classification"
 
     model_config = {"from_attributes": True}

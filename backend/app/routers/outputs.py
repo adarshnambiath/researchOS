@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.repositories.output_repository import OutputRepository
 from app.repositories.run_repository import RunRepository
-from app.schemas.output import OutputList
 from app.services.output_service import OutputService
 
 router = APIRouter(prefix="/api/runs/{run_id}/outputs", tags=["outputs"])
