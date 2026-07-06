@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import type { RunUpdate } from "../api/runs";
 import { fetchRuns, fetchRun, createRun, deleteRun, updateRun } from "../api/runs";
-import { syncOutputs, fetchOutputs } from "../api/outputs";
+import { syncOutputs, fetchOutputs, type OutputDetection } from "../api/outputs";
 
 export interface RunListItem {
   id: number;
@@ -29,7 +29,7 @@ export interface RunStore {
     output_directory: string | null;
     experiment_name: string;
   } | null;
-  outputItems: Array<{ id: number; type: string; filename: string; file_size: number; uploaded_at: string }>;
+  outputItems: OutputDetection[];
   loading: boolean;
   error: string | null;
   setLoading: (loading: boolean) => void;
@@ -105,9 +105,8 @@ export const useRunStore = create<RunStore>((set, get) => ({
   loadOutputs: async (runId) => {
     set({ loading: true, error: null });
     try {
-
       const outputItems = await fetchOutputs(runId);
-      set({ outputItems: outputItems as RunStore["outputItems"], loading: false });
+      set({ outputItems, loading: false });
     } catch (e) {
       set({ error: (e as Error).message, loading: false });
     }
@@ -116,7 +115,13 @@ export const useRunStore = create<RunStore>((set, get) => ({
     set({ loading: true, error: null });
     try {
       const data = await syncOutputs(runId);
-      set({ outputItems: data as RunStore["outputItems"], loading: false });
+      const outputItems: OutputDetection[] = data.map((d) => ({
+        filename: d.filename,
+        type: d.type,
+        found: true,
+        file_size: d.file_size,
+      }));
+      set({ outputItems, loading: false });
     } catch (e) {
       set({ error: (e as Error).message, loading: false });
     }

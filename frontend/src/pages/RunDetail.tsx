@@ -1,17 +1,26 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft, Pencil, Check, X } from "lucide-react";
 import { useRunStore } from "../stores/runStore";
 import { CodeBlock } from "../components/CodeBlock";
 import { FormField } from "../components/FormField";
 import { Modal } from "../components/Modal";
 import { formatDate, formatBytes } from "../lib/format";
 
+const SDK_PATH = "/Users/adarsh/Documents/internship_2026/sdk";
+
+const RECOGNIZED_FILES = [
+  { filename: "evaluation.parquet", description: "Row-level predictions with ground truth" },
+  { filename: "metrics.json", description: "Aggregate scores (accuracy, F1, etc.)" },
+  { filename: "artifacts.json", description: "References to checkpoints, plots, logs" },
+];
+
 export function RunDetail() {
   const { id } = useParams();
   const { selected, outputItems, loading, error, loadOne, loadOutputs, clearSelected, update } = useRunStore();
 
   const [editOpen, setEditOpen] = useState(false);
+  const [sdkTab, setSdkTab] = useState<"manual" | "prompt">("manual");
   const [form, setForm] = useState({
     model_name: "",
     notes: "",
@@ -38,12 +47,151 @@ export function RunDetail() {
   if (error) return <div className="p-6 text-sm text-red-600">{error}</div>;
   if (!selected) return <div className="p-6 text-sm text-gray-500">Run not found.</div>;
 
-  const codeSnippet = selected.output_directory
-    ? `output_dir = r"${selected.output_directory}"
-research_os.write_evaluation(output_dir, y_true, y_pred, sample_ids=ids)
-research_os.write_metrics(output_dir, {accuracy: 0.9, f1: 0.88})
-research_os.write_artifacts(output_dir, {model: "model.pkl", plot: "plot.png"})`
-    : "# Output directory unavailable";
+  // ── SDK code snippet (Tab 1) ──────────────────────────────────────
+  const codeSnippet = `import sys
+
+sys.path.insert(
+    0,
+    "${SDK_PATH}"
+)
+
+from experiment_sdk import ExperimentSession
+
+session = ExperimentSession(
+    output_directory=r"${selected.output_directory || ""}"
+)
+
+...
+session.publish_evaluation(
+    task="classification",
+    sample_ids=sample_ids,
+    ground_truth=y_true,
+    predictions=y_pred,
+    probabilities=probabilities,
+)
+
+session.publish_artifact(
+    type="MODEL_CHECKPOINT",
+    path="./models/best_model.pt",
+    name="Best Model",
+)
+
+session.finish()`;
+
+  // ── LLM prompt (Tab 2) ────────────────────────────────────────────
+const llmPrompt = `You are integrating a standalone experiment evaluation SDK into an existing Python machine learning training script.
+
+The SDK does NOT train models, perform inference, preprocess data, or replace any part of the ML pipeline.
+
+Its responsibility begins only after predictions have already been generated.
+
+The SDK validates evaluation outputs, computes standard metrics, serializes evaluation artifacts, and registers experiment artifacts.
+
+Your task is to integrate the SDK into the existing script while preserving its behavior.
+
+Requirements
+
+- Do NOT modify data loading.
+- Do NOT modify preprocessing.
+- Do NOT modify feature engineering.
+- Do NOT modify train/test splitting.
+- Do NOT modify model architecture.
+- Do NOT modify hyperparameters.
+- Do NOT modify training logic.
+- Do NOT modify inference logic.
+- Do NOT replace existing libraries.
+- Preserve the existing behavior of the script.
+
+Near the top of the file insert:
+
+import sys
+
+sys.path.insert(
+    0,
+    "${SDK_PATH}"
+)
+
+from experiment_sdk import ExperimentSession
+
+Create exactly one ExperimentSession:
+
+session = ExperimentSession(
+    output_directory="${selected.output_directory || ""}"
+)
+
+Do not modify this output directory.
+
+After the model has generated predictions on the evaluation/test set, publish exactly one evaluation using:
+
+session.publish_evaluation(
+    task="${selected.task}",
+    sample_ids=...,
+    ground_truth=...,
+    predictions=...,
+    probabilities=...,   # optional
+    metadata=...,        # optional
+)
+
+Populate these arguments using variables that already exist in the user's code.
+
+Rules:
+
+- task must match the experiment type.
+- sample_ids must uniquely identify every evaluated sample.
+- Reuse an existing identifier column if one exists.
+- Otherwise generate deterministic sequential sample IDs.
+- ground_truth, predictions, sample_ids, and probabilities (if provided) must all have matching lengths.
+- If class probabilities are available (for example from predict_proba or softmax outputs), pass them using the probabilities argument.
+- If probabilities are not available, omit the probabilities argument.
+- If useful metadata already exists (for example fold number, dataset version, split name, model variant, or other experiment metadata), pass it through the optional metadata argument.
+- Do not fabricate probabilities or metadata.
+
+If the training script already produces useful artifacts, register them using session.publish_artifact().
+
+Supported artifact types are:
+
+- MODEL_CHECKPOINT
+- CONFIG
+- LOGS
+- REPORT
+- VISUALIZATION
+- PREDICTIONS
+
+Example:
+
+session.publish_artifact(
+    type="MODEL_CHECKPOINT",
+    path="path/to/model.pt",
+    name="Best Model",
+)
+
+Only register artifacts that already exist.
+
+Do not create new files solely for artifact registration.
+
+After all evaluations and artifact registrations have completed, call:
+
+session.finish()
+
+exactly once.
+
+This will generate:
+
+- evaluation.parquet
+- metrics.json
+- artifacts.json
+
+inside:
+
+${selected.output_directory || ""}
+
+Return the complete modified Python file.
+
+Do not return a diff.
+
+Do not omit unchanged code.
+
+Do not explain your changes.`;
 
   const openEdit = () => {
     setForm({
@@ -88,7 +236,7 @@ research_os.write_artifacts(output_dir, {model: "model.pkl", plot: "plot.png"})`
         </Link>
         <div className="flex-1">
           <h1 className="text-2xl font-semibold text-gray-900">{selected.model_name}</h1>
-          <p className="text-sm text-gray-600">{selected.experiment_name} · {outputItems.length} output files</p>
+          <p className="text-sm text-gray-600">{selected.experiment_name}</p>
         </div>
         <button onClick={openEdit} className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50">
           <Pencil className="h-4 w-4" /> Edit
@@ -120,37 +268,116 @@ research_os.write_artifacts(output_dir, {model: "model.pkl", plot: "plot.png"})`
           </div>
           <div>
             <dt className="text-xs text-gray-500">Output Directory</dt>
-            <dd className="mt-1 text-sm text-gray-900 break-all">{selected.output_directory ?? "—"}</dd>
+            <dd className="mt-1 text-sm text-gray-900 font-mono break-all">{selected.output_directory ?? "—"}</dd>
           </div>
         </dl>
       </section>
 
       <section className="rounded-lg border border-gray-200 p-6">
         <h3 className="text-sm font-medium text-gray-900">SDK Integration</h3>
-        <p className="mt-2 text-sm text-gray-600">Place the following files in the output directory above:</p>
-        <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-gray-700">
-          <li><code className="rounded bg-gray-50 px-1 py-0.5 text-xs">evaluation.parquet</code> — Row-level predictions with ground truth.</li>
-          <li><code className="rounded bg-gray-50 px-1 py-0.5 text-xs">metrics.json</code> — Aggregate scores (accuracy, F1, etc.).</li>
-          <li><code className="rounded bg-gray-50 px-1 py-0.5 text-xs">artifacts.json</code> — References to checkpoints, plots, logs.</li>
-        </ul>
-        <div className="mt-4">
-          <CodeBlock code={codeSnippet} language="python" />
+        <p className="mt-2 text-sm text-gray-600">
+          Integrate the <code className="rounded bg-gray-50 px-1 py-0.5 text-xs font-mono">experiment_sdk</code> into your training script.
+          The SDK writes standardized outputs to the run output directory.
+        </p>
+
+        {/* Tabs */}
+        <div className="mt-4 border-b border-gray-200">
+          <nav className="-mb-px flex gap-6">
+            <button
+              onClick={() => setSdkTab("manual")}
+              className={`pb-2 text-sm font-medium border-b-2 transition-colors ${
+                sdkTab === "manual"
+                  ? "border-gray-900 text-gray-900"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+            >
+              Manual Integration
+            </button>
+            <button
+              onClick={() => setSdkTab("prompt")}
+              className={`pb-2 text-sm font-medium border-b-2 transition-colors ${
+                sdkTab === "prompt"
+                  ? "border-gray-900 text-gray-900"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+            >
+              Generate LLM Prompt
+            </button>
+          </nav>
+        </div>
+
+        {/* Tab content */}
+        <div className="mt-6">
+          {sdkTab === "manual" ? (
+            <div className="space-y-4">
+              <p className="text-sm text-gray-700">
+                Since the SDK is still under development, temporarily add the SDK path to <code className="rounded bg-gray-50 px-1 py-0.5 text-xs font-mono">sys.path</code>,
+                then create an <code className="rounded bg-gray-50 px-1 py-0.5 text-xs font-mono">ExperimentSession</code> pointing at the run output directory.
+              </p>
+
+              <div className="rounded-md bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800">
+                <strong>Output directory:</strong>{" "}
+                <code className="font-mono text-xs">{selected.output_directory || "—"}</code>
+              </div>
+
+              <CodeBlock code={codeSnippet} language="python" showCopy />
+
+              <div className="text-sm text-gray-600">
+                <p className="font-medium text-gray-900 mb-1">The SDK will create:</p>
+                <ul className="list-disc pl-5 space-y-1">
+                  {RECOGNIZED_FILES.map((f) => (
+                    <li key={f.filename}>
+                      <code className="rounded bg-gray-50 px-1 py-0.5 text-xs font-mono">{f.filename}</code>
+                      {" — "}{f.description}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-sm text-gray-700">
+                Copy this prompt into ChatGPT, Claude, Cursor, Cline, or any other LLM tool
+                to have it integrate the SDK into your Python training script automatically.
+              </p>
+
+              <div className="rounded-md bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800">
+                <strong>Output directory:</strong>{" "}
+                <code className="font-mono text-xs">{selected.output_directory || "—"}</code>
+              </div>
+
+              <CodeBlock code={llmPrompt} language="text" showCopy />
+            </div>
+          )}
         </div>
       </section>
 
       <section className="rounded-lg border border-gray-200 p-6">
         <h3 className="text-sm font-medium text-gray-900">Outputs</h3>
+        <p className="mt-1 text-sm text-gray-500">
+          Detected files in the run output directory.
+        </p>
         {outputItems.length === 0 ? (
           <p className="mt-3 text-sm text-gray-500">No recognized files found.</p>
         ) : (
           <div className="mt-4 divide-y divide-gray-100">
             {outputItems.map((o) => (
-              <div key={o.id} className="flex items-center justify-between py-3">
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{o.filename}</p>
-                  <p className="text-xs text-gray-500">{o.type} · {formatBytes(o.file_size)}</p>
+              <div key={o.filename} className="flex items-center justify-between py-3">
+                <div className="flex items-center gap-3">
+                  {o.found ? (
+                    <Check className="h-4 w-4 text-green-500 shrink-0" />
+                  ) : (
+                    <X className="h-4 w-4 text-gray-300 shrink-0" />
+                  )}
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{o.filename}</p>
+                    <p className="text-xs text-gray-500">
+                      {o.found
+                        ? `${o.type} · ${formatBytes(o.file_size)}`
+                        : "Not yet published"}
+                    </p>
+                  </div>
                 </div>
-                <span className="text-xs text-gray-400">{formatDate(o.uploaded_at)}</span>
               </div>
             ))}
           </div>

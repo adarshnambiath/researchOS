@@ -15,8 +15,15 @@ export interface OutputRegister {
   file_size: number;
 }
 
+export interface OutputDetection {
+  filename: string;
+  type: string;
+  found: boolean;
+  file_size: number;
+}
+
 export const fetchOutputs = (runId: number) =>
-  api.get<OutputListItem[]>(`/api/runs/${runId}/outputs`).then((r) => r.data);
+  api.get<OutputDetection[]>(`/api/runs/${runId}/outputs`).then((r) => r.data);
 
 export const syncOutputs = (runId: number) =>
   api.post<OutputRegister[]>(`/api/runs/${runId}/outputs/sync`).then((r) => r.data);

@@ -16,6 +16,48 @@ class OutputService:
     def __init__(self, output_repo: OutputRepository) -> None:
         self.output_repo = output_repo
 
+    def detect_outputs(self, run_directory: str) -> list[dict]:
+        """Check the filesystem for recognized output files.
+
+        Returns a list of dicts with filename, type, found (bool),
+        and file_size (0 if not found). Does NOT register anything in
+        the database.
+        """
+        result = []
+        if not os.path.isdir(run_directory):
+            for filename, output_type in RECOGNIZED_FILES.items():
+                result.append(
+                    {
+                        "filename": filename,
+                        "type": output_type,
+                        "found": False,
+                        "file_size": 0,
+                    }
+                )
+            return result
+
+        for filename, output_type in RECOGNIZED_FILES.items():
+            filepath = os.path.join(run_directory, filename)
+            if os.path.isfile(filepath):
+                result.append(
+                    {
+                        "filename": filename,
+                        "type": output_type,
+                        "found": True,
+                        "file_size": os.path.getsize(filepath),
+                    }
+                )
+            else:
+                result.append(
+                    {
+                        "filename": filename,
+                        "type": output_type,
+                        "found": False,
+                        "file_size": 0,
+                    }
+                )
+        return result
+
     def scan_directory(self, run_directory: str) -> list[dict]:
         if not os.path.isdir(run_directory):
             raise FileNotFoundError(f"Run directory not found: {run_directory}")
