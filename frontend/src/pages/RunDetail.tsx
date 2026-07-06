@@ -239,9 +239,17 @@ Do not explain your changes.`;
           <h1 className="text-2xl font-semibold text-gray-900">{selected.model_name}</h1>
           <p className="text-sm text-gray-600">{selected.experiment_name}</p>
         </div>
-        <button onClick={openEdit} className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50">
-          <Pencil className="h-4 w-4" /> Edit
-        </button>
+        <div className="flex gap-2">
+          <Link
+            to={`/experiments/${(selected as any).experiment_id}/runs/${selected.id}/evaluation`}
+            className="inline-flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+          >
+            View Evaluation
+          </Link>
+          <button onClick={openEdit} className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50">
+            <Pencil className="h-4 w-4" /> Edit
+          </button>
+        </div>
       </div>
 
       <section className="rounded-lg border border-gray-200 p-6">

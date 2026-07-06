@@ -7,6 +7,7 @@ import { Experiments } from "./pages/Experiments";
 import { ExperimentDetail } from "./pages/ExperimentDetail";
 import { Runs } from "./pages/Runs";
 import { RunDetail } from "./pages/RunDetail";
+import { RunEvaluation } from "./pages/RunEvaluation";
 import { Investigation } from "./pages/Investigation";
 
 export default function App() {
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/experiments" element={<Experiments />} />
         <Route path="/experiments/:id" element={<ExperimentDetail />} />
         <Route path="/experiments/:experimentId/runs/:runId" element={<RunDetail />} />
+        <Route path="/experiments/:experimentId/runs/:runId/evaluation" element={<RunEvaluation />} />
         <Route path="/experiments/:experimentId/runs/:runId/investigate" element={<Investigation />} />
         <Route path="/runs" element={<Runs />} />
         <Route path="/runs/:id" element={<RunDetail />} />
