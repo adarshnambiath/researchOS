@@ -40,17 +40,17 @@ export function Runs() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Runs</h1>
-          <p className="mt-1 text-sm text-gray-600">Execution attempts for your experiments.</p>
+          <h1 className="text-2xl font-semibold text-[var(--color-text-primary)]">Runs</h1>
+          <p className="mt-1 text-sm text-[var(--color-text-secondary)]">Execution attempts for your experiments.</p>
         </div>
-        <button onClick={() => setOpen(true)} className="inline-flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">
+        <button onClick={() => setOpen(true)} className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-hover)]">
           <Plus className="h-4 w-4" /> New Run
         </button>
       </div>
 
       <div className="flex items-center gap-3">
-        <label className="text-sm font-medium text-gray-700">Experiment:</label>
-        <select value={experimentFilter} onChange={(e) => setExperimentFilter(e.target.value)} className="rounded-md border border-gray-300 px-3 py-2 text-sm">
+        <label className="text-sm font-medium text-[var(--color-text-secondary)]">Experiment:</label>
+        <select value={experimentFilter} onChange={(e) => setExperimentFilter(e.target.value)} className="rounded-md border border-[var(--color-border)] px-3 py-2 text-sm">
           <option value="all">All</option>
           {experiments.map((exp) => (
             <option key={exp.id} value={String(exp.id)}>{exp.name}</option>
@@ -61,7 +61,7 @@ export function Runs() {
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       {loading ? (
-        <div className="p-8 text-center text-sm text-gray-500">Loading runs…</div>
+        <div className="p-8 text-center text-sm text-[var(--color-muted)]">Loading runs…</div>
       ) : (
         <DataTable
           columns={[
@@ -74,7 +74,7 @@ export function Runs() {
             {
               header: "",
               accessor: (row: any) => (
-                <button onClick={(e) => { e.stopPropagation(); onRemove(row.id); }} className="text-gray-400 hover:text-red-600">
+                <button onClick={(e) => { e.stopPropagation(); onRemove(row.id); }} className="text-[var(--color-muted)] hover:text-red-600">
                   <Trash2 className="h-4 w-4" />
                 </button>
               ),
@@ -90,7 +90,7 @@ export function Runs() {
       {open && (
         <FormModal title="New Run" onClose={() => setOpen(false)} onSubmit={onSubmit}>
           <FormField label="Experiment" required>
-            <select className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" value={form.experiment_id} onChange={(e) => setForm({ ...form, experiment_id: e.target.value })}>
+            <select className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm" value={form.experiment_id} onChange={(e) => setForm({ ...form, experiment_id: e.target.value })}>
               <option value="">Select an experiment</option>
               {experiments.map((exp) => (
                 <option key={exp.id} value={String(exp.id)}>{exp.name}</option>
@@ -98,17 +98,17 @@ export function Runs() {
             </select>
           </FormField>
           <FormField label="Model Name" required>
-            <input className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" value={form.model_name} onChange={(e) => setForm({ ...form, model_name: e.target.value })} />
+            <input className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm" value={form.model_name} onChange={(e) => setForm({ ...form, model_name: e.target.value })} />
           </FormField>
           <FormField label="Notes">
-            <textarea className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+            <textarea className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
           </FormField>
           <FormField label="Seed">
-            <input type="number" className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" value={form.seed} onChange={(e) => setForm({ ...form, seed: e.target.value })} />
+            <input type="number" className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm" value={form.seed} onChange={(e) => setForm({ ...form, seed: e.target.value })} />
           </FormField>
           <div className="mt-6 flex justify-end gap-3">
-            <button type="button" onClick={() => setOpen(false)} className="rounded-md border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50">Cancel</button>
-            <button type="submit" className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">Create</button>
+            <button type="button" onClick={() => setOpen(false)} className="rounded-md border border-[var(--color-border)] px-4 py-2 text-sm hover:bg-[var(--color-card)]">Cancel</button>
+            <button type="submit" className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-hover)]">Create</button>
           </div>
         </FormModal>
       )}
@@ -118,11 +118,11 @@ export function Runs() {
 
 function FormModal({ title, onClose, onSubmit, children }: { title: string; onClose: () => void; onSubmit: (e: React.FormEvent) => Promise<void>; children: React.ReactNode }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="w-full max-w-xl rounded-lg bg-white shadow">
-        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--color-primary)]/40">
+      <div className="w-full max-w-xl rounded-lg bg-[var(--color-surface)] shadow">
+        <div className="flex items-center justify-between border-b border-[var(--color-border)] px-6 py-4">
           <h2 className="text-lg font-medium">{title}</h2>
-          <button onClick={onClose} className="text-sm text-gray-500 hover:text-gray-900">Close</button>
+          <button onClick={onClose} className="text-sm text-[var(--color-muted)] hover:text-[var(--color-text-primary)]">Close</button>
         </div>
         <form onSubmit={onSubmit} className="p-6 space-y-4">
           {children}
@@ -134,7 +134,7 @@ function FormModal({ title, onClose, onSubmit, children }: { title: string; onCl
 
 function FormField({ label, children, required }: { label: string; children: React.ReactNode; required?: boolean }) {
   return (
-    <label className="block text-sm font-medium text-gray-700">
+    <label className="block text-sm font-medium text-[var(--color-text-secondary)]">
       {label}
       {required && <span className="ml-1 text-red-500">*</span>}
       {children}

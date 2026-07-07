@@ -63,10 +63,10 @@ export function Investigation() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4">
-        <button onClick={() => navigate(experimentId ? `/experiments/${experimentId}/runs/${runId}` : `/runs/${effectiveId}`)} className="text-sm text-gray-600 hover:text-gray-900">
+        <button onClick={() => navigate(experimentId ? `/experiments/${experimentId}/runs/${runId}` : `/runs/${effectiveId}`)} className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">
           <ArrowLeft className="h-4 w-4 inline mr-1" /> Back to run
         </button>
-        <h1 className="text-2xl font-semibold text-gray-900">{selected?.model_name ?? "Investigation"}</h1>
+        <h1 className="text-2xl font-semibold text-[var(--color-text-primary)]">{selected?.model_name ?? "Investigation"}</h1>
       </div>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
@@ -80,10 +80,10 @@ export function Investigation() {
         </section>
       )}
 
-      <section className="rounded-lg border border-gray-200 p-4">
+      <section className="rounded-lg border border-[var(--color-border)] p-4">
         <div className="flex items-center gap-4">
-          <label className="text-sm font-medium text-gray-700">Filter:</label>
-          <select value={preset} onChange={(e) => { setPreset(e.target.value); setOffset(0); }} className="rounded-md border border-gray-300 px-3 py-2 text-sm">
+          <label className="text-sm font-medium text-[var(--color-text-secondary)]">Filter:</label>
+          <select value={preset} onChange={(e) => { setPreset(e.target.value); setOffset(0); }} className="rounded-md border border-[var(--color-border)] px-3 py-2 text-sm">
             <option value="all">All</option>
             <option value="correct">Correct</option>
             <option value="incorrect">Incorrect</option>
@@ -94,31 +94,31 @@ export function Investigation() {
 
         <div className="mt-4">
           {loading ? (
-            <div className="p-8 text-center text-sm text-gray-500">Querying…</div>
+            <div className="p-8 text-center text-sm text-[var(--color-muted)]">Querying…</div>
           ) : (
             <DataTable
               columns={columns as any}
               data={rows}
               onRowClick={onRowClick}
-              empty={<p className="p-8 text-center text-sm text-gray-500">No rows match the current filter.</p>}
+              empty={<p className="p-8 text-center text-sm text-[var(--color-muted)]">No rows match the current filter.</p>}
             />
           )}
         </div>
 
         <div className="mt-4 flex items-center justify-between text-sm">
-          <span className="text-gray-600">{formatNumber(total)} total</span>
+          <span className="text-[var(--color-text-secondary)]">{formatNumber(total)} total</span>
           <div className="flex gap-2">
             <button
               disabled={offset === 0}
               onClick={() => setOffset((o) => Math.max(0, o - limit))}
-              className="rounded-md border border-gray-300 px-3 py-1 disabled:opacity-50"
+              className="rounded-md border border-[var(--color-border)] px-3 py-1 disabled:opacity-50"
             >
               Previous
             </button>
             <button
               disabled={offset + limit >= total}
               onClick={() => setOffset((o) => o + limit)}
-              className="rounded-md border border-gray-300 px-3 py-1 disabled:opacity-50"
+              className="rounded-md border border-[var(--color-border)] px-3 py-1 disabled:opacity-50"
             >
               Next
             </button>
@@ -130,15 +130,15 @@ export function Investigation() {
         <Modal title="Row Detail" onClose={() => setSelectedRow(null)} maxWidth="max-w-3xl">
           <div className="space-y-4">
             <div>
-              <h3 className="text-sm font-medium text-gray-900">Evaluation Row</h3>
-              <pre className="mt-2 rounded-md border border-gray-200 bg-gray-50 p-4 text-sm overflow-auto max-h-96">
+              <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Evaluation Row</h3>
+              <pre className="mt-2 rounded-md border border-[var(--color-border)] bg-[var(--color-card)] p-4 text-sm overflow-auto max-h-96">
                 {JSON.stringify(selectedRow.evaluation_row, null, 2)}
               </pre>
             </div>
             {selectedRow.dataset_row && (
               <div>
-                <h3 className="text-sm font-medium text-gray-900">Dataset Row</h3>
-                <pre className="mt-2 rounded-md border border-gray-200 bg-gray-50 p-4 text-sm overflow-auto max-h-96">
+                <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Dataset Row</h3>
+                <pre className="mt-2 rounded-md border border-[var(--color-border)] bg-[var(--color-card)] p-4 text-sm overflow-auto max-h-96">
                   {JSON.stringify(selectedRow.dataset_row, null, 2)}
                 </pre>
               </div>
@@ -152,9 +152,9 @@ export function Investigation() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-gray-200 p-4">
-      <p className="text-xs text-gray-500">{label}</p>
-      <p className="mt-1 text-2xl font-semibold text-gray-900">{value}</p>
+    <div className="rounded-lg border border-[var(--color-border)] p-4">
+      <p className="text-xs text-[var(--color-muted)]">{label}</p>
+      <p className="mt-1 text-2xl font-semibold text-[var(--color-text-primary)]">{value}</p>
     </div>
   );
 }

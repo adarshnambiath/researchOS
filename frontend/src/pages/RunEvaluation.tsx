@@ -49,9 +49,9 @@ function formatCell(value: unknown): string {
 
 function MetricCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-gray-200 p-4">
-      <p className="text-xs text-gray-500 uppercase tracking-wide">{label}</p>
-      <p className="mt-1 text-2xl font-semibold text-gray-900 truncate" title={value}>{value}</p>
+    <div className="rounded-lg border border-[var(--color-border)] p-4">
+      <p className="text-xs text-[var(--color-muted)] uppercase tracking-wide">{label}</p>
+      <p className="mt-1 text-2xl font-semibold text-[var(--color-text-primary)] truncate" title={value}>{value}</p>
     </div>
   );
 }
@@ -75,14 +75,14 @@ function ConfusionMatrix({ matrix, labels }: { matrix: number[][]; labels: strin
           <tr>
             <th className="p-1" />
             {rows.map((c) => (
-              <th key={c} className="p-1 font-medium text-gray-500 text-center">{c}</th>
+              <th key={c} className="p-1 font-medium text-[var(--color-muted)] text-center">{c}</th>
             ))}
           </tr>
         </thead>
         <tbody>
           {rows.map((r) => (
             <tr key={r}>
-              <td className="p-1 font-medium text-gray-500 text-right pr-2">{r}</td>
+              <td className="p-1 font-medium text-[var(--color-muted)] text-right pr-2">{r}</td>
               {rows.map((c) => {
                 const val = grid[r]?.[c] ?? 0;
                 const allVals = Object.values(grid).flatMap((row) => Object.values(row));
@@ -114,16 +114,16 @@ function JsonViewer({ data, label }: { data: unknown; label: string }) {
   const [open, setOpen] = useState(false);
   const isObject = data !== null && typeof data === "object";
   return (
-    <div className="rounded-lg border border-gray-200 overflow-hidden">
+    <div className="rounded-lg border border-[var(--color-border)] overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-gray-900 hover:bg-gray-50"
+        className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-[var(--color-text-primary)] hover:bg-[var(--color-card)]"
       >
         <span>{label}</span>
         {isObject ? (open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />) : null}
       </button>
       {open && (
-        <pre className="px-4 pb-3 text-xs text-gray-600 overflow-x-auto max-h-96">
+        <pre className="px-4 pb-3 text-xs text-[var(--color-text-secondary)] overflow-x-auto max-h-96">
           {JSON.stringify(data, null, 2)}
         </pre>
       )}
@@ -258,26 +258,26 @@ export function RunEvaluation() {
   const totalPages = Math.ceil(total / LIMIT);
   const currentPage = Math.floor(offset / LIMIT) + 1;
 
-  if (!effectiveId) return <div className="p-6 text-sm text-gray-500">Run ID not specified.</div>;
+  if (!effectiveId) return <div className="p-6 text-sm text-[var(--color-muted)]">Run ID not specified.</div>;
 
   const navUrl = experimentId ? `/experiments/${experimentId}/runs/${runId}` : `/runs/${effectiveId}`;
 
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-4">
-        <Link to={navUrl} className="text-sm text-gray-600 hover:text-gray-900">
+        <Link to={navUrl} className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">
           <ArrowLeft className="h-4 w-4 inline mr-1" /> Back to Run
         </Link>
-        <h1 className="text-2xl font-semibold text-gray-900">Evaluation</h1>
+        <h1 className="text-2xl font-semibold text-[var(--color-text-primary)]">Evaluation</h1>
       </div>
 
 
       {/* ═══════════════════════════════════════════
          1. METRICS
          ═══════════════════════════════════════════ */}
-      <section className="rounded-lg border border-gray-200 p-6">
-        <h2 className="text-sm font-medium text-gray-900 mb-4">Metrics</h2>
-        {metricsLoading && <p className="text-sm text-gray-500">Loading metrics…</p>}
+      <section className="rounded-lg border border-[var(--color-border)] p-6">
+        <h2 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Metrics</h2>
+        {metricsLoading && <p className="text-sm text-[var(--color-muted)]">Loading metrics…</p>}
         {metricsError && <p className="text-sm text-red-600">{metricsError}</p>}
         {!metricsLoading && !metricsError && metrics && (
           <div className="space-y-6">
@@ -290,7 +290,7 @@ export function RunEvaluation() {
             )}
             {confusionMatrix && (
               <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-2">Confusion Matrix</h3>
+                <h3 className="text-sm font-medium text-[var(--color-text-secondary)] mb-2">Confusion Matrix</h3>
                 <ConfusionMatrix matrix={confusionMatrix.matrix} labels={confusionMatrix.labels} />
               </div>
             )}
@@ -304,45 +304,45 @@ export function RunEvaluation() {
           </div>
         )}
         {!metricsLoading && !metricsError && !metrics && (
-          <p className="text-sm text-gray-500 italic">No metrics available yet.</p>
+          <p className="text-sm text-[var(--color-muted)] italic">No metrics available yet.</p>
         )}
       </section>
 
 {/* ═════════════════════════════──────────
          2. ARTIFACTS
          ═══════════════════════════════════════════ */}
-      <section className="rounded-lg border border-gray-200 p-6">
-        <h2 className="text-sm font-medium text-gray-900 mb-4">Artifacts</h2>
-        {artifactsLoading && <p className="text-sm text-gray-500">Loading artifacts…</p>}
+      <section className="rounded-lg border border-[var(--color-border)] p-6">
+        <h2 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Artifacts</h2>
+        {artifactsLoading && <p className="text-sm text-[var(--color-muted)]">Loading artifacts…</p>}
         {artifactsError && <p className="text-sm text-red-600">{artifactsError}</p>}
         {!artifactsLoading && !artifactsError && artifacts.length > 0 && (
-          <div className="overflow-x-auto rounded-lg border border-gray-200">
+          <div className="overflow-x-auto rounded-lg border border-[var(--color-border)]">
             <table className="min-w-full text-left text-sm">
-              <thead className="bg-gray-50">
+              <thead className="bg-[var(--color-card)]">
                 <tr>
-                  <th className="px-4 py-2 font-medium text-gray-600">Name</th>
-                  <th className="px-4 py-2 font-medium text-gray-600">Type</th>
-                  <th className="px-4 py-2 font-medium text-gray-600">Path</th>
-                  <th className="px-4 py-2 font-medium text-gray-600">Timestamp</th>
-                  <th className="px-4 py-2 font-medium text-gray-600">Status</th>
+                  <th className="px-4 py-2 font-medium text-[var(--color-text-secondary)]">Name</th>
+                  <th className="px-4 py-2 font-medium text-[var(--color-text-secondary)]">Type</th>
+                  <th className="px-4 py-2 font-medium text-[var(--color-text-secondary)]">Path</th>
+                  <th className="px-4 py-2 font-medium text-[var(--color-text-secondary)]">Timestamp</th>
+                  <th className="px-4 py-2 font-medium text-[var(--color-text-secondary)]">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-[var(--color-border)]">
                 {artifacts.map((art, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50">
-                    <td className="px-4 py-2 text-gray-900 font-medium">{art.name || "—"}</td>
-                    <td className="px-4 py-2 text-gray-900">
-                      <code className="rounded bg-gray-50 px-1 py-0.5 text-xs">{art.type}</code>
+                  <tr key={idx} className="hover:bg-[var(--color-card)]">
+                    <td className="px-4 py-2 text-[var(--color-text-primary)] font-medium">{art.name || "—"}</td>
+                    <td className="px-4 py-2 text-[var(--color-text-primary)]">
+                      <code className="rounded bg-[var(--color-card)] px-1 py-0.5 text-xs">{art.type}</code>
                     </td>
-                    <td className="px-4 py-2 text-gray-500 font-mono text-xs max-w-[300px] truncate" title={art.path}>{art.path}</td>
-                    <td className="px-4 py-2 text-gray-500 text-xs">{art.timestamp || "—"}</td>
+                    <td className="px-4 py-2 text-[var(--color-muted)] font-mono text-xs max-w-[300px] truncate" title={art.path}>{art.path}</td>
+                    <td className="px-4 py-2 text-[var(--color-muted)] text-xs">{art.timestamp || "—"}</td>
                     <td className="px-4 py-2">
                       {art.available ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
                           <Check className="h-3 w-3" /> Available
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-hover)] px-2 py-0.5 text-xs font-medium text-[var(--color-muted)]">
                           <X className="h-3 w-3" /> Missing
                         </span>
                       )}
@@ -354,50 +354,50 @@ export function RunEvaluation() {
           </div>
         )}
         {!artifactsLoading && !artifactsError && artifacts.length === 0 && (
-          <p className="text-sm text-gray-500 italic">No artifacts registered yet.</p>
+          <p className="text-sm text-[var(--color-muted)] italic">No artifacts registered yet.</p>
         )}
       </section>
       {/* ═══════════════════════════════════════════
          3. EVALUATION TABLE
          ═══════════════════════════════════════════ */}
-      <section className="rounded-lg border border-gray-200 p-6">
+      <section className="rounded-lg border border-[var(--color-border)] p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-medium text-gray-900">Evaluation Table</h2>
-          <span className="text-xs text-gray-500">
+          <h2 className="text-sm font-medium text-[var(--color-text-primary)]">Evaluation Table</h2>
+          <span className="text-xs text-[var(--color-muted)]">
             {formatNumber(total)} total rows · page {currentPage} of {Math.max(totalPages, 1)}
           </span>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 mb-4">
           <div className="relative flex-1 min-w-[200px] max-w-sm">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-[var(--color-muted)]" />
             <input type="text" placeholder="Search all columns…" value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              className="w-full rounded-md border border-gray-300 pl-8 pr-3 py-2 text-sm" />
+              className="w-full rounded-md border border-[var(--color-border)] pl-8 pr-3 py-2 text-sm" />
           </div>
           <select value={filterColumn} onChange={(e) => setFilterColumn(e.target.value)}
-            className="rounded-md border border-gray-300 px-3 py-2 text-sm">
+            className="rounded-md border border-[var(--color-border)] px-3 py-2 text-sm">
             <option value="">Filter column…</option>
             {columns.map((col) => (<option key={col} value={col}>{col}</option>))}
           </select>
           {filterColumn && (
             <input type="text" placeholder="Filter value…" value={filterValue}
               onChange={(e) => setFilterValue(e.target.value)}
-              className="rounded-md border border-gray-300 px-3 py-2 text-sm max-w-[160px]" />
+              className="rounded-md border border-[var(--color-border)] px-3 py-2 text-sm max-w-[160px]" />
           )}
         </div>
 
-        {evalLoading && <p className="text-sm text-gray-500">Loading evaluation data…</p>}
+        {evalLoading && <p className="text-sm text-[var(--color-muted)]">Loading evaluation data…</p>}
         {evalError && <p className="text-sm text-red-600">{evalError}</p>}
 
         {!evalLoading && !evalError && columns.length > 0 && (
-          <div className="overflow-x-auto rounded-lg border border-gray-200">
+          <div className="overflow-x-auto rounded-lg border border-[var(--color-border)]">
             <table className="min-w-full text-left text-sm">
-              <thead className="bg-gray-50">
+              <thead className="bg-[var(--color-card)]">
                 <tr>
                   {columnConfigs.map((col) => (
                     <th key={col.key}
-                      className={`px-4 py-2 font-medium text-gray-600 cursor-pointer select-none hover:text-gray-900 ${col.numeric ? "text-right" : ""}`}
+                      className={`px-4 py-2 font-medium text-[var(--color-text-secondary)] cursor-pointer select-none hover:text-[var(--color-text-primary)] ${col.numeric ? "text-right" : ""}`}
                       onClick={() => handleSort(col.key)}>
                       <span className="inline-flex items-center gap-1">
                         {col.key}
@@ -407,18 +407,18 @@ export function RunEvaluation() {
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-[var(--color-border)]">
                 {displayedRows.map((row, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50">
+                  <tr key={idx} className="hover:bg-[var(--color-card)]">
                     {columnConfigs.map((col) => {
                       const val = row[col.key];
                       const display = formatCell(val);
                       const isBool = typeof val === "boolean";
                       return (
                         <td key={col.key}
-                          className={`px-4 py-2 ${col.numeric ? "text-right font-mono tabular-nums" : ""} ${isBool ? "" : "text-gray-900"}`}>
+                          className={`px-4 py-2 ${col.numeric ? "text-right font-mono tabular-nums" : ""} ${isBool ? "" : "text-[var(--color-text-primary)]"}`}>
                           {isBool ? (
-                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${val ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${val ? "bg-green-100 text-green-700" : "bg-[var(--color-hover)] text-[var(--color-muted)]"}`}>
                               {val ? "True" : "False"}
                             </span>
                           ) : display}
@@ -433,19 +433,19 @@ export function RunEvaluation() {
         )}
 
         {!evalLoading && !evalError && columns.length === 0 && (
-          <p className="text-sm text-gray-500 italic">No evaluation data available yet.</p>
+          <p className="text-sm text-[var(--color-muted)] italic">No evaluation data available yet.</p>
         )}
 
         {total > LIMIT && (
           <div className="mt-4 flex items-center justify-between text-sm">
-            <span className="text-gray-600">Page {currentPage} of {totalPages}</span>
+            <span className="text-[var(--color-text-secondary)]">Page {currentPage} of {totalPages}</span>
             <div className="flex gap-2">
               <button disabled={offset === 0}
                 onClick={() => loadEvaluation(Math.max(0, offset - LIMIT))}
-                className="rounded-md border border-gray-300 px-3 py-1 disabled:opacity-50 hover:bg-gray-50">Previous</button>
+                className="rounded-md border border-[var(--color-border)] px-3 py-1 disabled:opacity-50 hover:bg-[var(--color-card)]">Previous</button>
               <button disabled={offset + LIMIT >= total}
                 onClick={() => loadEvaluation(offset + LIMIT)}
-                className="rounded-md border border-gray-300 px-3 py-1 disabled:opacity-50 hover:bg-gray-50">Next</button>
+                className="rounded-md border border-[var(--color-border)] px-3 py-1 disabled:opacity-50 hover:bg-[var(--color-card)]">Next</button>
             </div>
           </div>
         )}

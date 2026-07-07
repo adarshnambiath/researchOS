@@ -1,14 +1,15 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #111827;
+// Colors are injected from palette.ts by main.tsx
+
+* {
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  background: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

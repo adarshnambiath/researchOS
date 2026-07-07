@@ -17,13 +17,25 @@ export function Modal({ title, onClose, children, maxWidth = "max-w-2xl" }: Moda
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className={`w-full ${maxWidth} max-h-[90vh] overflow-y-auto rounded-lg bg-white shadow`}>
-        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-          <h2 className="text-lg font-medium">{title}</h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
+      <div
+        className={`w-full ${maxWidth} max-h-[90vh] overflow-y-auto rounded-lg`}
+        style={{
+          backgroundColor: "var(--color-card)",
+          border: "1px solid var(--color-border)",
+        }}
+      >
+        <div
+          className="flex items-center justify-between px-6 py-4"
+          style={{ borderBottom: "1px solid var(--color-border)" }}
+        >
+          <h2 className="text-lg font-medium" style={{ color: "var(--color-text-primary)" }}>{title}</h2>
           <button
             onClick={onClose}
-            className="text-sm text-gray-500 hover:text-gray-900"
+            className="text-sm transition-colors duration-150"
+            style={{ color: "var(--color-text-secondary)" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--color-text-primary)")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--color-text-secondary)")}
           >
             Close
           </button>

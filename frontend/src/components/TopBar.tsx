@@ -8,17 +8,17 @@ const pathToTitle: Record<string, string> = {
 };
 
 export function TopBar() {
-  const location = useLocation();
-  const title =
-    pathToTitle[location.pathname] || location.pathname.split("/").filter(Boolean).pop();
-
   return (
-    <header className="h-16 border-b border-gray-200 bg-white/80 backdrop-blur">
-      <div className="flex h-full items-center px-6">
-        <h1 className="text-sm font-medium text-gray-500">
-          {title ? title.charAt(0).toUpperCase() + title.slice(1) : "Research OS"}
-        </h1>
-      </div>
+    <header
+      className="h-16 flex items-center px-6"
+      style={{
+        borderBottom: "1px solid var(--color-border)",
+        backgroundColor: "var(--color-surface)",
+      }}
+    >
+      <h1 className="text-sm font-medium" style={{ color: "var(--color-text-secondary)" }}>
+        Research OS
+      </h1>
     </header>
   );
 }

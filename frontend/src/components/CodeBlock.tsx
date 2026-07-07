@@ -25,7 +25,14 @@ export function CodeBlock({ code, language = "python", showCopy = true }: CodeBl
       {showCopy && (
         <button
           onClick={handleCopy}
-          className="absolute right-2 top-2 z-10 rounded-md border border-gray-200 bg-white px-2 py-1 text-xs font-medium text-gray-600 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-50"
+          className="absolute right-2 top-2 z-10 rounded-md px-2 py-1 text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+          style={{
+            border: "1px solid var(--color-border)",
+            backgroundColor: "var(--color-card)",
+            color: "var(--color-text-secondary)",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--color-hover)")}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "var(--color-card)")}
         >
           {copied ? (
             <span className="inline-flex items-center gap-1">
@@ -38,7 +45,14 @@ export function CodeBlock({ code, language = "python", showCopy = true }: CodeBl
           )}
         </button>
       )}
-      <pre className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm leading-relaxed overflow-x-auto">
+      <pre
+        className="rounded-lg p-4 text-sm leading-relaxed overflow-x-auto"
+        style={{
+          border: "1px solid var(--color-border)",
+          backgroundColor: "var(--color-card)",
+          color: "var(--color-text-primary)",
+        }}
+      >
         <code className={`language-${language}`}>{code}</code>
       </pre>
     </div>

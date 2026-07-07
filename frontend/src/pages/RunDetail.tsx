@@ -7,7 +7,7 @@ import { FormField } from "../components/FormField";
 import { Modal } from "../components/Modal";
 import { formatDate, formatBytes } from "../lib/format";
 
-const SDK_PATH = "/Users/adarsh/Documents/internship_2026/sdk";
+const SDK_PATH = "/Users/adarsh/Documents/internship_2026/evalsdk";
 
 const RECOGNIZED_FILES = [
   { filename: "evaluation.parquet", description: "Row-level predictions with ground truth" },
@@ -44,9 +44,9 @@ export function RunDetail() {
     return () => clearSelected();
   }, [effectiveId, loadOne, loadOutputs, clearSelected]);
 
-  if (loading) return <div className="p-6 text-sm text-gray-500">Loading…</div>;
+  if (loading) return <div className="p-6 text-sm text-[var(--color-muted)]">Loading…</div>;
   if (error) return <div className="p-6 text-sm text-red-600">{error}</div>;
-  if (!selected) return <div className="p-6 text-sm text-gray-500">Run not found.</div>;
+  if (!selected) return <div className="p-6 text-sm text-[var(--color-muted)]">Run not found.</div>;
 
   // ── SDK code snippet (Tab 1) ──────────────────────────────────────
   const codeSnippet = `import sys
@@ -232,72 +232,72 @@ Do not explain your changes.`;
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link to={`/experiments/${(selected as any).experiment_id}`} className="text-sm text-gray-600 hover:text-gray-900">
+        <Link to={`/experiments/${(selected as any).experiment_id}`} className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">
           <ArrowLeft className="h-4 w-4 inline mr-1" /> Back
         </Link>
         <div className="flex-1">
-          <h1 className="text-2xl font-semibold text-gray-900">{selected.model_name}</h1>
-          <p className="text-sm text-gray-600">{selected.experiment_name}</p>
+          <h1 className="text-2xl font-semibold text-[var(--color-text-primary)]">{selected.model_name}</h1>
+          <p className="text-sm text-[var(--color-text-secondary)]">{selected.experiment_name}</p>
         </div>
         <div className="flex gap-2">
           <Link
             to={`/experiments/${(selected as any).experiment_id}/runs/${selected.id}/evaluation`}
-            className="inline-flex items-center gap-2 rounded-lg bg-black px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+            className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-hover)]"
           >
             View Evaluation
           </Link>
-          <button onClick={openEdit} className="inline-flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50">
+          <button onClick={openEdit} className="inline-flex items-center gap-2 rounded-lg border border-[var(--color-border)] px-4 py-2 text-sm font-medium hover:bg-[var(--color-card)]">
             <Pencil className="h-4 w-4" /> Edit
           </button>
         </div>
       </div>
 
-      <section className="rounded-lg border border-gray-200 p-6">
-        <h3 className="text-sm font-medium text-gray-900">Metadata</h3>
+      <section className="rounded-lg border border-[var(--color-border)] p-6">
+        <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Metadata</h3>
         <dl className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <dt className="text-xs text-gray-500">Experiment</dt>
-            <dd className="mt-1 text-sm text-gray-900">{selected.experiment_name}</dd>
+            <dt className="text-xs text-[var(--color-muted)]">Experiment</dt>
+            <dd className="mt-1 text-sm text-[var(--color-text-primary)]">{selected.experiment_name}</dd>
           </div>
           <div>
-            <dt className="text-xs text-gray-500">Created</dt>
-            <dd className="mt-1 text-sm text-gray-900">{formatDate(selected.created_at)}</dd>
+            <dt className="text-xs text-[var(--color-muted)]">Created</dt>
+            <dd className="mt-1 text-sm text-[var(--color-text-primary)]">{formatDate(selected.created_at)}</dd>
           </div>
           <div>
-            <dt className="text-xs text-gray-500">Seed</dt>
-            <dd className="mt-1 text-sm text-gray-900">{selected.seed ?? "—"}</dd>
+            <dt className="text-xs text-[var(--color-muted)]">Seed</dt>
+            <dd className="mt-1 text-sm text-[var(--color-text-primary)]">{selected.seed ?? "—"}</dd>
           </div>
           <div>
-            <dt className="text-xs text-gray-500">Framework</dt>
-            <dd className="mt-1 text-sm text-gray-900">{selected.framework ?? "—"}</dd>
+            <dt className="text-xs text-[var(--color-muted)]">Framework</dt>
+            <dd className="mt-1 text-sm text-[var(--color-text-primary)]">{selected.framework ?? "—"}</dd>
           </div>
           <div>
-            <dt className="text-xs text-gray-500">Git Commit</dt>
-            <dd className="mt-1 text-sm text-gray-900">{selected.git_commit ?? "—"}</dd>
+            <dt className="text-xs text-[var(--color-muted)]">Git Commit</dt>
+            <dd className="mt-1 text-sm text-[var(--color-text-primary)]">{selected.git_commit ?? "—"}</dd>
           </div>
           <div>
-            <dt className="text-xs text-gray-500">Output Directory</dt>
-            <dd className="mt-1 text-sm text-gray-900 font-mono break-all">{selected.output_directory ?? "—"}</dd>
+            <dt className="text-xs text-[var(--color-muted)]">Output Directory</dt>
+            <dd className="mt-1 text-sm text-[var(--color-text-primary)] font-mono break-all">{selected.output_directory ?? "—"}</dd>
           </div>
         </dl>
       </section>
 
-      <section className="rounded-lg border border-gray-200 p-6">
-        <h3 className="text-sm font-medium text-gray-900">SDK Integration</h3>
-        <p className="mt-2 text-sm text-gray-600">
-          Integrate the <code className="rounded bg-gray-50 px-1 py-0.5 text-xs font-mono">experiment_sdk</code> into your training script.
+      <section className="rounded-lg border border-[var(--color-border)] p-6">
+        <h3 className="text-sm font-medium text-[var(--color-text-primary)]">SDK Integration</h3>
+        <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
+          Integrate the <code className="rounded bg-[var(--color-card)] px-1 py-0.5 text-xs font-mono">experiment_sdk</code> into your training script.
           The SDK writes standardized outputs to the run output directory.
         </p>
 
         {/* Tabs */}
-        <div className="mt-4 border-b border-gray-200">
+        <div className="mt-4 border-b border-[var(--color-border)]">
           <nav className="-mb-px flex gap-6">
             <button
               onClick={() => setSdkTab("manual")}
               className={`pb-2 text-sm font-medium border-b-2 transition-colors ${
                 sdkTab === "manual"
-                  ? "border-gray-900 text-gray-900"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  ? "border-[var(--color-primary)] text-[var(--color-text-primary)]"
+                  : "border-transparent text-[var(--color-muted)] hover:text-[var(--color-text-secondary)] hover:border-[var(--color-border)]"
               }`}
             >
               Manual Integration
@@ -306,8 +306,8 @@ Do not explain your changes.`;
               onClick={() => setSdkTab("prompt")}
               className={`pb-2 text-sm font-medium border-b-2 transition-colors ${
                 sdkTab === "prompt"
-                  ? "border-gray-900 text-gray-900"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  ? "border-[var(--color-primary)] text-[var(--color-text-primary)]"
+                  : "border-transparent text-[var(--color-muted)] hover:text-[var(--color-text-secondary)] hover:border-[var(--color-border)]"
               }`}
             >
               Generate LLM Prompt
@@ -319,9 +319,9 @@ Do not explain your changes.`;
         <div className="mt-6">
           {sdkTab === "manual" ? (
             <div className="space-y-4">
-              <p className="text-sm text-gray-700">
-                Since the SDK is still under development, temporarily add the SDK path to <code className="rounded bg-gray-50 px-1 py-0.5 text-xs font-mono">sys.path</code>,
-                then create an <code className="rounded bg-gray-50 px-1 py-0.5 text-xs font-mono">ExperimentSession</code> pointing at the run output directory.
+              <p className="text-sm text-[var(--color-text-secondary)]">
+                Since the SDK is still under development, temporarily add the SDK path to <code className="rounded bg-[var(--color-card)] px-1 py-0.5 text-xs font-mono">sys.path</code>,
+                then create an <code className="rounded bg-[var(--color-card)] px-1 py-0.5 text-xs font-mono">ExperimentSession</code> pointing at the run output directory.
               </p>
 
               <div className="rounded-md bg-amber-50 border border-amber-200 p-3 text-sm text-amber-800">
@@ -331,12 +331,12 @@ Do not explain your changes.`;
 
               <CodeBlock code={codeSnippet} language="python" showCopy />
 
-              <div className="text-sm text-gray-600">
-                <p className="font-medium text-gray-900 mb-1">The SDK will create:</p>
+              <div className="text-sm text-[var(--color-text-secondary)]">
+                <p className="font-medium text-[var(--color-text-primary)] mb-1">The SDK will create:</p>
                 <ul className="list-disc pl-5 space-y-1">
                   {RECOGNIZED_FILES.map((f) => (
                     <li key={f.filename}>
-                      <code className="rounded bg-gray-50 px-1 py-0.5 text-xs font-mono">{f.filename}</code>
+                      <code className="rounded bg-[var(--color-card)] px-1 py-0.5 text-xs font-mono">{f.filename}</code>
                       {" — "}{f.description}
                     </li>
                   ))}
@@ -345,7 +345,7 @@ Do not explain your changes.`;
             </div>
           ) : (
             <div className="space-y-4">
-              <p className="text-sm text-gray-700">
+              <p className="text-sm text-[var(--color-text-secondary)]">
                 Copy this prompt into ChatGPT, Claude, Cursor, Cline, or any other LLM tool
                 to have it integrate the SDK into your Python training script automatically.
               </p>
@@ -361,26 +361,26 @@ Do not explain your changes.`;
         </div>
       </section>
 
-      <section className="rounded-lg border border-gray-200 p-6">
-        <h3 className="text-sm font-medium text-gray-900">Outputs</h3>
-        <p className="mt-1 text-sm text-gray-500">
+      <section className="rounded-lg border border-[var(--color-border)] p-6">
+        <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Outputs</h3>
+        <p className="mt-1 text-sm text-[var(--color-muted)]">
           Detected files in the run output directory.
         </p>
         {outputItems.length === 0 ? (
-          <p className="mt-3 text-sm text-gray-500">No recognized files found.</p>
+          <p className="mt-3 text-sm text-[var(--color-muted)]">No recognized files found.</p>
         ) : (
-          <div className="mt-4 divide-y divide-gray-100">
+          <div className="mt-4 divide-y divide-[var(--color-border)]">
             {outputItems.map((o) => (
               <div key={o.filename} className="flex items-center justify-between py-3">
                 <div className="flex items-center gap-3">
                   {o.found ? (
                     <Check className="h-4 w-4 text-green-500 shrink-0" />
                   ) : (
-                    <X className="h-4 w-4 text-gray-300 shrink-0" />
+                    <X className="h-4 w-4 text-[var(--color-text-secondary)] shrink-0" />
                   )}
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{o.filename}</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">{o.filename}</p>
+                    <p className="text-xs text-[var(--color-muted)]">
                       {o.found
                         ? `${o.type} · ${formatBytes(o.file_size)}`
                         : "Not yet published"}
@@ -397,31 +397,31 @@ Do not explain your changes.`;
         <Modal title="Edit Run" onClose={() => setEditOpen(false)}>
           <form onSubmit={onSubmit} className="space-y-4">
             <FormField label="Model Name" required>
-              <input className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" value={form.model_name} onChange={(e) => setForm({ ...form, model_name: e.target.value })} required />
+              <input className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm" value={form.model_name} onChange={(e) => setForm({ ...form, model_name: e.target.value })} required />
             </FormField>
             <FormField label="Notes">
-              <textarea className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+              <textarea className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
             </FormField>
             <FormField label="Seed">
-              <input type="number" className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" value={form.seed} onChange={(e) => setForm({ ...form, seed: e.target.value })} />
+              <input type="number" className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm" value={form.seed} onChange={(e) => setForm({ ...form, seed: e.target.value })} />
             </FormField>
             <div className="grid grid-cols-2 gap-4">
               <FormField label="Framework">
-                <input className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" value={form.framework} onChange={(e) => setForm({ ...form, framework: e.target.value })} />
+                <input className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm" value={form.framework} onChange={(e) => setForm({ ...form, framework: e.target.value })} />
               </FormField>
               <FormField label="Execution Device">
-                <input className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" value={form.execution_device} onChange={(e) => setForm({ ...form, execution_device: e.target.value })} />
+                <input className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm" value={form.execution_device} onChange={(e) => setForm({ ...form, execution_device: e.target.value })} />
               </FormField>
             </div>
             <FormField label="Git Commit">
-              <input className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" value={form.git_commit} onChange={(e) => setForm({ ...form, git_commit: e.target.value })} />
+              <input className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm" value={form.git_commit} onChange={(e) => setForm({ ...form, git_commit: e.target.value })} />
             </FormField>
             <FormField label="Repository URL">
-              <input className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm" value={form.repository_url} onChange={(e) => setForm({ ...form, repository_url: e.target.value })} />
+              <input className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm" value={form.repository_url} onChange={(e) => setForm({ ...form, repository_url: e.target.value })} />
             </FormField>
             <div className="mt-6 flex justify-end gap-3">
-              <button type="button" onClick={() => setEditOpen(false)} className="rounded-md border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50">Cancel</button>
-              <button type="submit" className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-gray-800">Save</button>
+              <button type="button" onClick={() => setEditOpen(false)} className="rounded-md border border-[var(--color-border)] px-4 py-2 text-sm hover:bg-[var(--color-card)]">Cancel</button>
+              <button type="submit" className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-hover)]">Save</button>
             </div>
           </form>
         </Modal>

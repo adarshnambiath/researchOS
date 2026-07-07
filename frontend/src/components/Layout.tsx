@@ -4,9 +4,9 @@ import { TopBar } from "./TopBar";
 
 export function Layout() {
   return (
-    <div className="min-h-screen bg-white text-gray-900">
+    <div className="min-h-screen" style={{ backgroundColor: "var(--color-background)", color: "var(--color-text-primary)" }}>
       <Sidebar />
-      <div className="pl-64">
+      <div className="pl-72">
         <TopBar />
         <main className="p-6">
           <Outlet />
