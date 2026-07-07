@@ -30,9 +30,18 @@ class ColumnMetadata(BaseModel):
     units: str | None = None
 
 
+class WaveformDefinition(BaseModel):
+    name: str
+    start_column: str
+    end_column: str
+    sampling_rate: float | None = None
+    units: str | None = None
+
+
 class DatasetMetadata(BaseModel):
     columns: list[ColumnMetadata]
     row_count: int
+    waveform_definitions: list[WaveformDefinition] | None = None
 
     def to_schema_json(self) -> str:
         return self.model_dump_json()
@@ -50,6 +59,7 @@ class DatasetCreate(BaseModel):
     modality: str = Field(default="tabular", max_length=50)
     label_column: str | None = None
     sample_id_column: str | None = None
+    waveform_definitions: list[WaveformDefinition] | None = None
 
 
 class DatasetUpdate(BaseModel):
@@ -80,6 +90,7 @@ class DatasetDetail(BaseModel):
     sample_id_column: str | None
     row_count: int
     dataset_schema: list[ColumnMetadata] | None
+    waveform_definitions: list[WaveformDefinition] | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

@@ -8,6 +8,14 @@ export interface DatasetListItem {
   created_at: string;
 }
 
+export interface WaveformDefinitionShape {
+  name: string;
+  start_column: string;
+  end_column: string;
+  sampling_rate?: number;
+  units?: string | null;
+}
+
 export interface DatasetDetail extends DatasetListItem {
   description: string | null;
   source_path: string;
@@ -25,6 +33,7 @@ export interface DatasetDetail extends DatasetListItem {
     categories?: string[];
     units?: string;
   }> | null;
+  waveform_definitions: WaveformDefinitionShape[] | null;
   created_at: string;
 }
 
@@ -40,6 +49,7 @@ export interface DatasetCreate {
   modality?: string;
   label_column?: string;
   sample_id_column?: string;
+  waveform_definitions?: WaveformDefinitionShape[] | null;
 }
 
 export interface DatasetUpdate {

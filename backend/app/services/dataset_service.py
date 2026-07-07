@@ -32,6 +32,7 @@ class DatasetService:
         df = pd.read_csv(source_path)
         row_count = int(len(df))
         metadata = self._infer_metadata(df)
+        metadata.waveform_definitions = data.waveform_definitions or None
 
         db_obj = self.repo.create(
             name=data.name,
@@ -110,6 +111,7 @@ class DatasetService:
             sample_id_column=db_obj.sample_id_column,
             row_count=db_obj.row_count,
             dataset_schema=metadata.columns if metadata else None,
+            waveform_definitions=metadata.waveform_definitions if metadata else None,
             created_at=db_obj.created_at,
         )
 

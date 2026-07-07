@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronRight, Pencil } from "lucide-react";
 import { useDatasetStore } from "../stores/datasetStore";
 import { FormField } from "../components/FormField";
 import { Modal } from "../components/Modal";
@@ -12,6 +12,7 @@ export function DatasetDetail() {
 
   const [editOpen, setEditOpen] = useState(false);
   const [form, setForm] = useState({ name: "", description: "", modality: "", label_column: "", sample_id_column: "" });
+  const [expandedWaveforms, setExpandedWaveforms] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (id) {
@@ -90,15 +91,105 @@ export function DatasetDetail() {
       <section className="rounded-lg border border-[var(--color-border)] p-6">
         <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Schema</h3>
         <div className="mt-4 grid grid-cols-1 gap-2">
-          {selected.dataset_schema?.map((col) => (
-            <div key={col.name} className="flex items-center justify-between rounded-md border border-[var(--color-border)] px-3 py-2">
-              <span className="text-sm text-[var(--color-text-primary)]">{col.name}</span>
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-[var(--color-muted)]">{col.type}</span>
-                {col.nullable && <span className="text-xs text-[var(--color-muted)]">nullable</span>}
+          {selected.waveform_definitions && selected.waveform_definitions.length > 0 ? (
+            <>
+              {selected.waveform_definitions.map((waveform) => {
+                const startIdx = selected.dataset_schema?.findIndex((col) => col.name === waveform.start_column) ?? -1;
+                const endIdx = selected.dataset_schema?.findIndex((col) => col.name === waveform.end_column) ?? -1;
+                const columnsInWaveform =
+                  startIdx >= 0 && endIdx >= startIdx && selected.dataset_schema
+                    ? selected.dataset_schema.slice(startIdx, endIdx + 1)
+                    : [];
+
+                const isExpanded = expandedWaveforms.has(waveform.name);
+                return (
+                  <div key={waveform.name}>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setExpandedWaveforms((prev) => {
+                          const next = new Set(prev);
+                          if (next.has(waveform.name)) {
+                            next.delete(waveform.name);
+                          } else {
+                            next.add(waveform.name);
+                          }
+                          return next;
+                        })
+                      }
+                      className="flex w-full items-center justify-between rounded-md border border-[var(--color-border)] px-3 py-2 text-left hover:bg-[var(--color-card)]"
+                    >
+                      <div className="flex items-center gap-2">
+                        {isExpanded ? (
+                          <ChevronDown className="h-4 w-4 text-[var(--color-muted)]" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4 text-[var(--color-muted)]" />
+                        )}
+                        <span className="text-sm font-medium text-[var(--color-text-primary)]">{waveform.name}</span>
+                        <span className="text-xs text-[var(--color-muted)]">
+                          {waveform.start_column} → {waveform.end_column}
+                        </span>
+                      </div>
+                      <span className="text-xs text-[var(--color-muted)]">{columnsInWaveform.length} columns</span>
+                    </button>
+                    {isExpanded && (
+                      <div className="mt-1 grid grid-cols-1 gap-1 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2">
+                        {columnsInWaveform.map((col) => (
+                          <div key={col.name} className="flex items-center justify-between rounded-md border border-[var(--color-border)] px-3 py-2 bg-white">
+                            <span className="text-sm text-[var(--color-text-primary)]">{col.name}</span>
+                            <div className="flex items-center gap-3">
+                              <span className="text-xs text-[var(--color-muted)]">{waveform.name}</span>
+                              {col.nullable && <span className="text-xs text-[var(--color-muted)]">nullable</span>}
+                            </div>
+                          </div>
+                        ))}
+                        {!columnsInWaveform.length && (
+                          <div className="px-3 py-2 text-xs text-[var(--color-muted)]">
+                            No matching columns found for range {waveform.start_column} → {waveform.end_column}.
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+              {selected.dataset_schema?.length ? (() => {
+                const waveformColumnNames = new Set<string>();
+                selected.waveform_definitions?.forEach((waveform) => {
+                  const startIdx = selected.dataset_schema!.findIndex((col) => col.name === waveform.start_column);
+                  const endIdx = selected.dataset_schema!.findIndex((col) => col.name === waveform.end_column);
+                  if (startIdx >= 0 && endIdx >= startIdx) {
+                    selected.dataset_schema!.slice(startIdx, endIdx + 1).forEach((col) => waveformColumnNames.add(col.name));
+                  }
+                });
+                const remainingColumns = selected.dataset_schema.filter((col) => !waveformColumnNames.has(col.name));
+                if (!remainingColumns.length) return null;
+                return (
+                  <>
+                    {remainingColumns.map((col) => (
+                      <div key={col.name} className="flex items-center justify-between rounded-md border border-[var(--color-border)] px-3 py-2">
+                        <span className="text-sm text-[var(--color-text-primary)]">{col.name}</span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs text-[var(--color-muted)]">{col.type}</span>
+                          {col.nullable && <span className="text-xs text-[var(--color-muted)]">nullable</span>}
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                );
+              })() : null}
+            </>
+          ) : (
+            selected.dataset_schema?.map((col) => (
+              <div key={col.name} className="flex items-center justify-between rounded-md border border-[var(--color-border)] px-3 py-2">
+                <span className="text-sm text-[var(--color-text-primary)]">{col.name}</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-[var(--color-muted)]">{col.type}</span>
+                  {col.nullable && <span className="text-xs text-[var(--color-muted)]">nullable</span>}
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </section>
 

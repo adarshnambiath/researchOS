@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.repositories.dataset_repository import DatasetRepository
-from app.schemas.dataset import DatasetCreate, DatasetDetail, DatasetPreview, DatasetUpdate
+from app.schemas.dataset import DatasetCreate, DatasetDetail, DatasetPreview, DatasetUpdate, WaveformDefinition
 from app.services.dataset_service import DatasetService
 
 router = APIRouter(prefix="/api/datasets", tags=["datasets"])
@@ -20,6 +20,7 @@ class RegisterRequest(BaseModel):
     modality: str = Field(default="tabular", max_length=50)
     label_column: str | None = None
     sample_id_column: str | None = None
+    waveform_definitions: list[WaveformDefinition] | None = None
 
 
 def get_service(db: Session = Depends(get_db)) -> DatasetService:
@@ -40,6 +41,7 @@ def register_dataset(payload: RegisterRequest, service: DatasetService = Depends
             modality=payload.modality,
             label_column=payload.label_column,
             sample_id_column=payload.sample_id_column,
+            waveform_definitions=payload.waveform_definitions,
         ),
         source_path=payload.source_path,
     )

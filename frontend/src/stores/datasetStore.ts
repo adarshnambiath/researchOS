@@ -22,6 +22,13 @@ export interface DatasetStore {
       type: string;
       nullable: boolean;
     }> | null;
+    waveform_definitions: Array<{
+      name: string;
+      start_column: string;
+      end_column: string;
+      sampling_rate?: number;
+      units?: string | null;
+    }> | null;
   } | null;
   preview: DatasetPreview | null;
   loading: boolean;
