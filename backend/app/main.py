@@ -13,6 +13,7 @@ from app.routers import (
     runs_router,
     runs_nested_router,
     sdk_visualization_router,
+    waveforms_router,
 )
 
 
@@ -45,3 +46,4 @@ app.include_router(outputs_router)
 app.include_router(investigation_router)
 app.include_router(runs_nested_router)
 app.include_router(sdk_visualization_router)
+app.include_router(waveforms_router)

@@ -225,6 +225,39 @@ export function DatasetDetail() {
         )}
       </section>
 
+      {selected.waveform_definitions && selected.waveform_definitions.length > 0 && (
+        <section className="rounded-lg border border-[var(--color-border)] p-6">
+          <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Waveforms</h3>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {selected.waveform_definitions.map((waveform) => (
+              <div
+                key={waveform.name}
+                className="rounded-lg border border-[var(--color-border)] p-4"
+                style={{ backgroundColor: "var(--color-card)" }}
+              >
+                <h4 className="text-sm font-medium text-[var(--color-text-primary)]">
+                  {waveform.name}
+                </h4>
+                <div className="mt-2 space-y-1 text-xs" style={{ color: "var(--color-text-secondary)" }}>
+                  {waveform.sampling_rate && <p>Sampling Rate: {waveform.sampling_rate} Hz</p>}
+                  {waveform.units && <p>Units: {waveform.units}</p>}
+                  <p>Columns: {waveform.start_column} → {waveform.end_column}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    (window.location.href = `/datasets/${selected.id}/waveforms/${encodeURIComponent(waveform.name)}`)
+                  }
+                  className="mt-3 inline-flex items-center gap-1 rounded-md bg-[var(--color-primary)] px-3 py-1.5 text-xs font-medium text-white hover:bg-[var(--color-hover-button)]"
+                >
+                  Preview Waveform
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {editOpen && (
         <Modal title="Edit Dataset" onClose={() => setEditOpen(false)}>
           <form onSubmit={onSubmit} className="space-y-4">

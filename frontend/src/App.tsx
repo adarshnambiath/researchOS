@@ -9,6 +9,7 @@ import { Runs } from "./pages/Runs";
 import { RunDetail } from "./pages/RunDetail";
 import { RunEvaluation } from "./pages/RunEvaluation";
 import { Investigation } from "./pages/Investigation";
+import { WaveformViewer } from "./pages/WaveformViewer";
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/datasets" element={<Datasets />} />
         <Route path="/datasets/:id" element={<DatasetDetail />} />
+        <Route path="/datasets/:datasetId/waveforms/:waveformName" element={<WaveformViewer />} />
         <Route path="/experiments" element={<Experiments />} />
         <Route path="/experiments/:id" element={<ExperimentDetail />} />
         <Route path="/experiments/:experimentId/runs/:runId" element={<RunDetail />} />
