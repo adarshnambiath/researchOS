@@ -8,6 +8,18 @@ export interface EvaluationResult {
   limit: number;
 }
 
+export interface EvaluationQueryParams {
+  search?: string;
+  sort_column?: string;
+  sort_direction?: "asc" | "desc";
+  filter_column?: string;
+  filter_value?: string;
+  true_label?: string;
+  predicted_label?: string;
+  limit?: number;
+  offset?: number;
+}
+
 export interface ArtifactEntry {
   name?: string;
   type: string;
@@ -21,10 +33,15 @@ export const fetchEvaluation = (
   runId: number,
   limit = 100,
   offset = 0,
+  params?: EvaluationQueryParams,
 ) =>
   api
     .get<EvaluationResult>(`/api/runs/${runId}/evaluation`, {
-      params: { limit, offset },
+      params: {
+        limit,
+        offset,
+        ...params,
+      },
     })
     .then((r) => r.data);
 

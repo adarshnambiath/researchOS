@@ -180,7 +180,15 @@ export function RunEvaluation() {
   const loadEvaluation = useCallback((newOffset: number) => {
     if (!effectiveId) return;
     setEvalLoading(true);
-    fetchEvaluation(Number(effectiveId), LIMIT, newOffset)
+    fetchEvaluation(Number(effectiveId), LIMIT, newOffset, {
+      search: searchText.trim() || undefined,
+      sort_column: sortColumn || undefined,
+      sort_direction: sortAsc ? "asc" : "desc",
+      filter_column: filterColumn || undefined,
+      filter_value: filterValue.trim() || undefined,
+      true_label: cmTrueLabel || undefined,
+      predicted_label: cmPredictedLabel || undefined,
+    })
       .then((result) => {
         setColumns(result.columns);
         setRows(result.rows);
@@ -189,7 +197,7 @@ export function RunEvaluation() {
       })
       .catch((e) => setEvalError(e.message))
       .finally(() => setEvalLoading(false));
-  }, [effectiveId]);
+  }, [effectiveId, searchText, sortColumn, sortAsc, filterColumn, filterValue, cmTrueLabel, cmPredictedLabel]);
 
   useEffect(() => { loadEvaluation(0); }, [loadEvaluation]);
 
@@ -248,40 +256,6 @@ export function RunEvaluation() {
     }
     return { scalarMetrics: scalars, confusionMatrix: cm, otherMetrics: others };
   }, [metrics]);
-
-  const displayedRows = useMemo(() => {
-    let filtered = [...rows];
-    if (searchText.trim()) {
-      const q = searchText.toLowerCase();
-      filtered = filtered.filter((row) => Object.values(row).some((v) => String(v ?? "").toLowerCase().includes(q)));
-    }
-    if (filterColumn && filterValue.trim()) {
-      const q = filterValue.toLowerCase();
-      filtered = filtered.filter((row) => String(row[filterColumn] ?? "").toLowerCase().includes(q));
-    }
-    if (sortColumn) {
-      filtered.sort((a, b) => {
-        const va = a[sortColumn];
-        const vb = b[sortColumn];
-        let cmp = 0;
-        if (typeof va === "number" && typeof vb === "number") cmp = va - vb;
-        else cmp = String(va ?? "").localeCompare(String(vb ?? ""));
-        return sortAsc ? cmp : -cmp;
-      });
-    }
-    if (cmTrueLabel && cmPredictedLabel) {
-      filtered = filtered.filter((row) => {
-        // Try common column names: ground_truth, true_label, prediction, predicted_label
-        const trueCol = columns.find((c) => ["ground_truth", "true_label"].includes(c.toLowerCase()));
-        const predCol = columns.find((c) => ["prediction", "predicted_label"].includes(c.toLowerCase()));
-        if (trueCol && predCol) {
-          return String(row[trueCol] ?? "") === cmTrueLabel && String(row[predCol] ?? "") === cmPredictedLabel;
-        }
-        return true;
-      });
-    }
-    return filtered;
-  }, [rows, searchText, filterColumn, filterValue, sortColumn, sortAsc]);
 
   const columnConfigs = useMemo(() => {
     return columns.map((col) => ({ key: col, numeric: isNumeric(rows.map((r) => r[col])) }));
@@ -405,7 +379,7 @@ export function RunEvaluation() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--color-border)]">
-                {displayedRows.map((row, idx) => (
+                {rows.map((row, idx) => (
                   <tr key={idx} className="hover:bg-[var(--color-card)]">
                     {columnConfigs.map((col) => {
                       const val = row[col.key];
@@ -505,4 +479,3 @@ export function RunEvaluation() {
     </div>
   );
 }
-
