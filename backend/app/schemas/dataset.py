@@ -57,6 +57,7 @@ class DatasetCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: str | None = None
     modality: str = Field(default="tabular", max_length=50)
+    storage_format: str = Field(default="csv", max_length=50)
     label_column: str | None = None
     sample_id_column: str | None = None
     waveform_definitions: list[WaveformDefinition] | None = None
@@ -85,6 +86,7 @@ class DatasetDetail(BaseModel):
     name: str
     description: str | None
     modality: str
+    storage_format: str = "csv"
     source_path: str
     label_column: str | None
     sample_id_column: str | None

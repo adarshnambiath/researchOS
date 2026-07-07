@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Search, ChevronUp, ChevronDown, Check, X } from "lucide-react";
 import { fetchEvaluation, fetchMetrics, fetchArtifacts } from "../api/evaluation";
+import { fetchExperiment } from "../api/experiments";
+import { fetchDataset } from "../api/datasets";
 import { formatNumber } from "../lib/format";
 
 /* ───────────────────────────────────────────────────────────
@@ -57,7 +59,7 @@ function MetricCard({ label, value }: { label: string; value: string }) {
 }
 
 /** Render a flat confusion matrix as an HTML table. */
-function ConfusionMatrix({ matrix, labels }: { matrix: number[][]; labels: string[] }) {
+function ConfusionMatrix({ matrix, labels, onCellClick }: { matrix: number[][]; labels: string[]; onCellClick?: (trueLabel: string, predictedLabel: string) => void }) {
   const rows = labels;
   const grid: Record<string, Record<string, number>> = {};
 
@@ -91,11 +93,13 @@ function ConfusionMatrix({ matrix, labels }: { matrix: number[][]; labels: strin
                 return (
                   <td
                     key={c}
-                    className="p-1 text-center rounded"
+                    className={`p-1 text-center rounded ${onCellClick ? "cursor-pointer hover:opacity-80" : ""}`}
                     style={{
                       backgroundColor: `rgba(59, 130, 246, ${intensity * 0.35})`,
                       fontWeight: r === c ? 600 : 400,
                     }}
+                    onClick={() => onCellClick?.(r, c)}
+                    title={onCellClick ? `Click to show rows where true=${r}, predicted=${c}` : undefined}
                   >
                     {formatNumber(val)}
                   </td>
@@ -153,6 +157,11 @@ export function RunEvaluation() {
   const [sortAsc, setSortAsc] = useState(true);
   const [filterColumn, setFilterColumn] = useState<string>("");
   const [filterValue, setFilterValue] = useState("");
+  const [cmTrueLabel, setCmTrueLabel] = useState<string | null>(null);
+  const [cmPredictedLabel, setCmPredictedLabel] = useState<string | null>(null);
+  const [datasetId, setDatasetId] = useState<number | null>(null);
+  const [hasWaveforms, setHasWaveforms] = useState(false);
+  const [firstWaveformName, setFirstWaveformName] = useState<string | null>(null);
   const LIMIT = 100;
 
   const [artifacts, setArtifacts] = useState<ArtifactEntry[]>([]);
@@ -192,6 +201,23 @@ export function RunEvaluation() {
       .catch((e) => setArtifactsError(e.message))
       .finally(() => setArtifactsLoading(false));
   }, [effectiveId]);
+
+  // Fetch experiment to resolve dataset_id, then fetch dataset for waveform definitions
+  useEffect(() => {
+    if (!experimentId) return;
+    fetchExperiment(Number(experimentId))
+      .then((exp) => {
+        setDatasetId(exp.dataset_id);
+        return fetchDataset(exp.dataset_id);
+      })
+      .then((ds) => {
+        setHasWaveforms(!!(ds.waveform_definitions && ds.waveform_definitions.length > 0));
+        if (ds.waveform_definitions && ds.waveform_definitions.length > 0) {
+          setFirstWaveformName(ds.waveform_definitions[0].name);
+        }
+      })
+      .catch(() => {});
+  }, [experimentId]);
 
   const { scalarMetrics, confusionMatrix, otherMetrics } = useMemo(() => {
     if (!metrics) return { scalarMetrics: {}, confusionMatrix: null, otherMetrics: {} };
@@ -243,6 +269,17 @@ export function RunEvaluation() {
         return sortAsc ? cmp : -cmp;
       });
     }
+    if (cmTrueLabel && cmPredictedLabel) {
+      filtered = filtered.filter((row) => {
+        // Try common column names: ground_truth, true_label, prediction, predicted_label
+        const trueCol = columns.find((c) => ["ground_truth", "true_label"].includes(c.toLowerCase()));
+        const predCol = columns.find((c) => ["prediction", "predicted_label"].includes(c.toLowerCase()));
+        if (trueCol && predCol) {
+          return String(row[trueCol] ?? "") === cmTrueLabel && String(row[predCol] ?? "") === cmPredictedLabel;
+        }
+        return true;
+      });
+    }
     return filtered;
   }, [rows, searchText, filterColumn, filterValue, sortColumn, sortAsc]);
 
@@ -290,8 +327,18 @@ export function RunEvaluation() {
             )}
             {confusionMatrix && (
               <div>
-                <h3 className="text-sm font-medium text-[var(--color-text-secondary)] mb-2">Confusion Matrix</h3>
-                <ConfusionMatrix matrix={confusionMatrix.matrix} labels={confusionMatrix.labels} />
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-medium text-[var(--color-text-secondary)]">Confusion Matrix</h3>
+                  {(cmTrueLabel || cmPredictedLabel) && (
+                    <button onClick={() => { setCmTrueLabel(null); setCmPredictedLabel(null); }} className="text-xs text-[var(--color-primary)] hover:underline">Clear filter</button>
+                  )}
+                </div>
+                {(cmTrueLabel || cmPredictedLabel) && (
+                  <p className="mb-2 text-xs text-[var(--color-muted)]">
+                    Filtering: true = {cmTrueLabel || "?"}, predicted = {cmPredictedLabel || "?"}
+                  </p>
+                )}
+                <ConfusionMatrix matrix={confusionMatrix.matrix} labels={confusionMatrix.labels} onCellClick={(trueLabel, predictedLabel) => { setCmTrueLabel(cmTrueLabel === trueLabel && cmPredictedLabel === predictedLabel ? null : trueLabel); setCmPredictedLabel(cmTrueLabel === trueLabel && cmPredictedLabel === predictedLabel ? null : predictedLabel); }} />
               </div>
             )}
             {Object.keys(otherMetrics).length > 0 && (
@@ -414,6 +461,7 @@ export function RunEvaluation() {
                       const val = row[col.key];
                       const display = formatCell(val);
                       const isBool = typeof val === "boolean";
+                      const canViewWaveform = hasWaveforms && col.key.toLowerCase() === "sample_id" && val != null && String(val).trim() !== "";
                       return (
                         <td key={col.key}
                           className={`px-4 py-2 ${col.numeric ? "text-right font-mono tabular-nums" : ""} ${isBool ? "" : "text-[var(--color-text-primary)]"}`}>
@@ -421,6 +469,10 @@ export function RunEvaluation() {
                             <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${val ? "bg-green-100 text-green-700" : "bg-[var(--color-hover)] text-[var(--color-muted)]"}`}>
                               {val ? "True" : "False"}
                             </span>
+                          ) : canViewWaveform ? (
+                            <Link to={`/datasets/${datasetId}/waveforms/${firstWaveformName ? encodeURIComponent(firstWaveformName) : "preview"}?recordId=${encodeURIComponent(String(val))}`} className="text-[var(--color-primary)] hover:underline">
+                              {display}
+                            </Link>
                           ) : display}
                         </td>
                       );

@@ -13,6 +13,7 @@ class Dataset(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     modality: Mapped[str] = mapped_column(String(50), nullable=False, default="tabular")
+    storage_format: Mapped[str] = mapped_column(String(50), nullable=False, default="csv")
     source_path: Mapped[str] = mapped_column(String(1024), nullable=False)
     label_column: Mapped[str | None] = mapped_column(String(255), nullable=True)
     sample_id_column: Mapped[str | None] = mapped_column(String(255), nullable=True)

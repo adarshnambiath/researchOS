@@ -38,6 +38,7 @@ class DatasetService:
             name=data.name,
             description=data.description,
             modality=data.modality,
+            storage_format=data.storage_format,
             source_path=source_path,
             label_column=data.label_column,
             sample_id_column=data.sample_id_column,

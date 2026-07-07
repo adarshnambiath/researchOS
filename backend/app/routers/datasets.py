@@ -18,6 +18,7 @@ class RegisterRequest(BaseModel):
     source_path: str = Field(..., min_length=1)
     description: str | None = None
     modality: str = Field(default="tabular", max_length=50)
+    storage_format: str = Field(default="csv", max_length=50)
     label_column: str | None = None
     sample_id_column: str | None = None
     waveform_definitions: list[WaveformDefinition] | None = None
@@ -39,6 +40,7 @@ def register_dataset(payload: RegisterRequest, service: DatasetService = Depends
             name=payload.name,
             description=payload.description,
             modality=payload.modality,
+            storage_format=payload.storage_format,
             label_column=payload.label_column,
             sample_id_column=payload.sample_id_column,
             waveform_definitions=payload.waveform_definitions,

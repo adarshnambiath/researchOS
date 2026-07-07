@@ -1,34 +1,35 @@
 from app.repositories.dataset_repository import DatasetRepository
 from app.waveform.csv_provider import CSVWaveformProvider
 from app.waveform.models import WaveformListItem, WaveformRecord
-from app.waveform.provider import WaveformProvider
+from app.waveform.registry import ProviderRegistry
 
 
 class WaveformService:
     """Orchestrates waveform extraction from registered datasets.
 
     Delegates to the appropriate WaveformProvider based on the
-    dataset's source type (currently CSV only; WFDB/EDF can be
-    added by registering new providers).
+    dataset's storage_format.  New storage formats (WFDB, EDF, …)
+    are added by creating a provider class and registering it in
+    ProviderRegistry — this class never needs to change.
     """
 
     def __init__(self, repo: DatasetRepository) -> None:
         self._repo = repo
-        # Future: build a dispatch dict from dataset modality
-        # to the correct provider.  For now CSV is the only source.
-        self._csv_provider: WaveformProvider = CSVWaveformProvider(repo)
 
-    def _get_provider(self, dataset_id: int) -> WaveformProvider | None:
-        """Resolve the provider for a dataset.
+    def _get_storage_format(self, dataset_id: int) -> str | None:
+        ds = self._repo.get_by_id(dataset_id)
+        if not ds:
+            return None
+        return ds.storage_format
 
-        Currently returns the CSV provider unconditionally.
-        Future: inspect dataset modality / source type to dispatch
-        to WFDBWaveformProvider, EDFWaveformProvider, etc.
-        """
-        # Placeholder for modality-based dispatch:
-        #   ds = self._repo.get_by_id(dataset_id)
-        #   if ds and ds.modality == "wfdb":   return WFDBWaveformProvider(...)
-        return self._csv_provider
+    def _get_provider(self, dataset_id: int) -> object | None:
+        storage_format = self._get_storage_format(dataset_id)
+        if not storage_format:
+            return None
+        provider_cls = ProviderRegistry.get_provider(storage_format)
+        if not provider_cls:
+            return None
+        return provider_cls(self._repo)
 
     def list_waveforms(self, dataset_id: int) -> list[WaveformListItem]:
         provider = self._get_provider(dataset_id)
@@ -49,3 +50,4 @@ class WaveformService:
         if not provider:
             return None
         return provider.get_record(dataset_id, waveform_name, record_id)
+

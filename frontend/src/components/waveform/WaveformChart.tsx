@@ -7,11 +7,11 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import type { WaveformRecord } from "../../api/waveforms";
 
 interface WaveformChartProps {
-  samples: number[];
-  samplingRateHz?: number;
-  units?: string | null;
+  /** Standardized backend response object — the only dependency. */
+  waveform: WaveformRecord;
   height?: number;
 }
 
@@ -19,16 +19,16 @@ interface WaveformChartProps {
  * Reusable line chart for waveform data.
  *
  * Knows nothing about datasets, ECG, or any specific signal modality.
- * Receives a flat array of samples and renders an interactive time-series
- * chart.  The x-axis can show time in seconds or sample index depending
- * on whether samplingRateHz is provided.
+ * Consumes a single WaveformRecord object.  Future additions
+ * (annotations, timestamps, channels, lead names) are added to the
+ * WaveformRecord model without changing this component's prop signature.
  */
 export function WaveformChart({
-  samples,
-  samplingRateHz,
-  units,
+  waveform,
   height = 300,
 }: WaveformChartProps) {
+  const { samples, sampling_rate_hz: samplingRateHz, units } = waveform;
+
   // Build data points — one per sample
   const data = samples.map((value, index) => ({
     index,
