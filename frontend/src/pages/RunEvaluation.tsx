@@ -394,7 +394,7 @@ export function RunEvaluation() {
                               {val ? "True" : "False"}
                             </span>
                           ) : canViewWaveform ? (
-                            <Link to={`/datasets/${datasetId}/waveforms/${firstWaveformName ? encodeURIComponent(firstWaveformName) : "preview"}?recordId=${encodeURIComponent(String(val))}`} className="text-[var(--color-primary)] hover:underline">
+                            <Link to={`/datasets/${datasetId}/waveforms/${firstWaveformName ? encodeURIComponent(firstWaveformName) : "preview"}?recordId=${encodeURIComponent(String(val))}&from=evaluation&runId=${encodeURIComponent(String(runId || ""))}&experimentId=${encodeURIComponent(String(experimentId || ""))}`} className="text-[var(--color-primary)] hover:underline">
                               {display}
                             </Link>
                           ) : display}

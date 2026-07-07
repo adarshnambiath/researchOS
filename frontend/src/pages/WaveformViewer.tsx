@@ -13,6 +13,18 @@ export function WaveformViewerPage() {
   }>();
   const [searchParams] = useSearchParams();
   const recordIdParam = searchParams.get("recordId");
+  const fromParam = searchParams.get("from");
+  const fromRunId = searchParams.get("runId");
+  const fromExperimentId = searchParams.get("experimentId");
+
+  const navigateToRun = (runId = fromRunId) => {
+    if (!runId) return undefined;
+    if (fromExperimentId) return `/experiments/${fromExperimentId}/runs/${runId}`;
+    return `/runs/${runId}`;
+  };
+
+  const backTarget = fromParam === "evaluation" ? navigateToRun() : `/datasets/${datasetId}`;
+  const backLabel = fromParam === "evaluation" ? "Back to Run Evaluation" : "Back to Dataset";
 
   const [record, setRecord] = useState<WaveformRecord | null>(null);
   const [loading, setLoading] = useState(true);
@@ -50,12 +62,11 @@ export function WaveformViewerPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link
-          to={`/datasets/${datasetId}`}
-          className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
-        >
-          <ArrowLeft className="h-4 w-4 inline mr-1" /> Back to Dataset
-        </Link>
+        {backTarget && (
+          <Link to={backTarget} className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">
+            <ArrowLeft className="h-4 w-4 inline mr-1" /> {backLabel}
+          </Link>
+        )}
       </div>
 
       <div>
