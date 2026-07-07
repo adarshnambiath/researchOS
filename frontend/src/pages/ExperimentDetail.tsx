@@ -37,11 +37,11 @@ export function ExperimentDetail() {
     return () => clearSelected();
   }, [id, loadOne, clearSelected, load]);
 
-  if (loading) return <div className="p-6 text-sm text-[var(--color-muted)]">Loading…</div>;
+  if (loading) return <div className="p-6 text-sm text-(--color-muted)">Loading…</div>;
   if (error) return <div className="p-6 text-sm text-red-600">{error}</div>;
   if (!selected)
     return (
-      <div className="p-6 text-sm text-[var(--color-muted)]">Experiment not found.</div>
+      <div className="p-6 text-sm text-(--color-muted)">Experiment not found.</div>
     );
 
   const openEdit = () => {
@@ -82,93 +82,93 @@ export function ExperimentDetail() {
       <div className="flex items-center gap-4">
         <Link
           to="/experiments"
-          className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]"
+          className="text-sm text-(--color-text-secondary) hover:text-(--color-text-primary)"
         >
           <ArrowLeft className="h-4 w-4 inline mr-1" /> Back
         </Link>
         <div>
-          <h1 className="text-2xl font-semibold text-[var(--color-text-primary)]">
+          <h1 className="text-2xl font-semibold text-(--color-text-primary)">
             {selected.name}
           </h1>
-          <p className="text-sm text-[var(--color-text-secondary)]">
+          <p className="text-sm text-(--color-text-secondary)">
             {selected.task} · {runs.length} runs
           </p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={openEdit}
-            className="inline-flex items-center gap-2 rounded-lg border border-[var(--color-border)] px-4 py-2 text-sm font-medium hover:bg-[var(--color-card)]"
+            className="inline-flex items-center gap-2 rounded-lg border border-(--color-border) px-4 py-2 text-sm font-medium hover:bg-(--color-card)"
           >
             <Pencil className="h-4 w-4" /> Edit
           </button>
           <button
             onClick={() => setRunOpen(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-hover-button)]"
+            className="inline-flex items-center gap-2 rounded-lg bg-(--color-primary) px-4 py-2 text-sm font-medium text-white hover:bg-(--color-hover-button)"
           >
             <Plus className="h-4 w-4" /> New Run
           </button>
         </div>
       </div>
 
-      <section className="rounded-lg border border-[var(--color-border)] p-6">
-        <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Details</h3>
+      <section className="rounded-lg border border-(--color-border) p-6">
+        <h3 className="text-sm font-medium text-(--color-text-primary)">Details</h3>
         <dl className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <dt className="text-xs text-[var(--color-muted)]">Dataset</dt>
-            <dd className="mt-1 text-sm text-[var(--color-text-primary)]">
+            <dt className="text-xs text-(--color-muted)">Dataset</dt>
+            <dd className="mt-1 text-sm text-(--color-text-primary)">
               {selected.dataset_name}
             </dd>
           </div>
           <div>
-            <dt className="text-xs text-[var(--color-muted)]">Task</dt>
-            <dd className="mt-1 text-sm text-[var(--color-text-primary)]">{selected.task}</dd>
+            <dt className="text-xs text-(--color-muted)">Task</dt>
+            <dd className="mt-1 text-sm text-(--color-text-primary)">{selected.task}</dd>
           </div>
           <div className="sm:col-span-2">
-            <dt className="text-xs text-[var(--color-muted)]">Description</dt>
-            <dd className="mt-1 text-sm text-[var(--color-text-primary)]">
+            <dt className="text-xs text-(--color-muted)">Description</dt>
+            <dd className="mt-1 text-sm text-(--color-text-primary)">
               {selected.description || "—"}
             </dd>
           </div>
           <div className="sm:col-span-2">
-            <dt className="text-xs text-[var(--color-muted)]">Objective</dt>
-            <dd className="mt-1 text-sm text-[var(--color-text-primary)]">
+            <dt className="text-xs text-(--color-muted)">Objective</dt>
+            <dd className="mt-1 text-sm text-(--color-text-primary)">
               {selected.objective || "—"}
             </dd>
           </div>
           <div>
-            <dt className="text-xs text-[var(--color-muted)]">Created</dt>
-            <dd className="mt-1 text-sm text-[var(--color-text-primary)]">
+            <dt className="text-xs text-(--color-muted)">Created</dt>
+            <dd className="mt-1 text-sm text-(--color-text-primary)">
               {formatDate(selected.created_at)}
             </dd>
           </div>
         </dl>
       </section>
 
-      <section className="rounded-lg border border-[var(--color-border)] p-6">
-        <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Runs</h3>
+      <section className="rounded-lg border border-(--color-border) p-6">
+        <h3 className="text-sm font-medium text-(--color-text-primary)">Runs</h3>
         {runs.length === 0 ? (
-          <p className="mt-3 text-sm text-[var(--color-muted)]">No runs yet.</p>
+          <p className="mt-3 text-sm text-(--color-muted)">No runs yet.</p>
         ) : (
           <div className="mt-4 overflow-x-auto">
             <table className="min-w-full text-left text-sm">
-              <thead className="bg-[var(--color-card)]">
+              <thead className="bg-(--color-card)">
                 <tr>
-                  <th className="px-4 py-2 font-medium text-[var(--color-text-secondary)]">ID</th>
-                  <th className="px-4 py-2 font-medium text-[var(--color-text-secondary)]">Model</th>
-                  <th className="px-4 py-2 font-medium text-[var(--color-text-secondary)]">
+                  <th className="px-4 py-2 font-medium text-(--color-text-secondary)">ID</th>
+                  <th className="px-4 py-2 font-medium text-(--color-text-secondary)">Model</th>
+                  <th className="px-4 py-2 font-medium text-(--color-text-secondary)">
                     Framework
                   </th>
-                  <th className="px-4 py-2 font-medium text-[var(--color-text-secondary)]">Seed</th>
-                  <th className="px-4 py-2 font-medium text-[var(--color-text-secondary)]">
+                  <th className="px-4 py-2 font-medium text-(--color-text-secondary)">Seed</th>
+                  <th className="px-4 py-2 font-medium text-(--color-text-secondary)">
                     Created
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--color-border)]">
+              <tbody className="divide-y divide-(--color-border)">
                 {runs.map((run) => (
                   <tr
                     key={run.id}
-                    className="cursor-pointer hover:bg-[var(--color-card)]"
+                    className="cursor-pointer hover:bg-(--color-card)"
                     onClick={() => navigate(`/experiments/${selected.id}/runs/${run.id}`)}
                   >
                     <td className="px-4 py-2">{run.id}</td>
@@ -189,7 +189,7 @@ export function ExperimentDetail() {
           <form onSubmit={onEditSubmit} className="space-y-4">
             <FormField label="Name" required>
               <input
-                className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-(--color-border) px-3 py-2 text-sm"
                 value={editForm.name}
                 onChange={(e) =>
                   setEditForm({ ...editForm, name: e.target.value })
@@ -199,7 +199,7 @@ export function ExperimentDetail() {
             </FormField>
             <FormField label="Description">
               <textarea
-                className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-(--color-border) px-3 py-2 text-sm"
                 value={editForm.description}
                 onChange={(e) =>
                   setEditForm({ ...editForm, description: e.target.value })
@@ -208,7 +208,7 @@ export function ExperimentDetail() {
             </FormField>
             <FormField label="Objective">
               <textarea
-                className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-(--color-border) px-3 py-2 text-sm"
                 value={editForm.objective}
                 onChange={(e) =>
                   setEditForm({ ...editForm, objective: e.target.value })
@@ -217,7 +217,7 @@ export function ExperimentDetail() {
             </FormField>
             <FormField label="Task">
               <input
-                className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-(--color-border) px-3 py-2 text-sm"
                 value={editForm.task}
                 onChange={(e) =>
                   setEditForm({ ...editForm, task: e.target.value })
@@ -228,13 +228,13 @@ export function ExperimentDetail() {
               <button
                 type="button"
                 onClick={() => setEditOpen(false)}
-                className="rounded-md border border-[var(--color-border)] px-4 py-2 text-sm hover:bg-[var(--color-card)]"
+                className="rounded-md border border-(--color-border) px-4 py-2 text-sm hover:bg-(--color-card)"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-hover-button)]"
+                className="rounded-md bg-(--color-primary) px-4 py-2 text-sm font-medium text-white hover:bg-(--color-hover-button)"
               >
                 Save
               </button>
@@ -248,7 +248,7 @@ export function ExperimentDetail() {
           <form onSubmit={onCreateRun} className="space-y-4">
             <FormField label="Model Name" required>
               <input
-                className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-(--color-border) px-3 py-2 text-sm"
                 value={runForm.model_name}
                 onChange={(e) =>
                   setRunForm({ ...runForm, model_name: e.target.value })
@@ -258,7 +258,7 @@ export function ExperimentDetail() {
             </FormField>
             <FormField label="Notes">
               <textarea
-                className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-(--color-border) px-3 py-2 text-sm"
                 value={runForm.notes}
                 onChange={(e) =>
                   setRunForm({ ...runForm, notes: e.target.value })
@@ -268,7 +268,7 @@ export function ExperimentDetail() {
             <FormField label="Seed">
               <input
                 type="number"
-                className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-(--color-border) px-3 py-2 text-sm"
                 value={runForm.seed}
                 onChange={(e) =>
                   setRunForm({ ...runForm, seed: e.target.value })
@@ -279,13 +279,13 @@ export function ExperimentDetail() {
               <button
                 type="button"
                 onClick={() => setRunOpen(false)}
-                className="rounded-md border border-[var(--color-border)] px-4 py-2 text-sm hover:bg-[var(--color-card)]"
+                className="rounded-md border border-(--color-border) px-4 py-2 text-sm hover:bg-(--color-card)"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-hover-button)]"
+                className="rounded-md bg-(--color-primary) px-4 py-2 text-sm font-medium text-white hover:bg-(--color-hover-button)"
               >
                 Create
               </button>

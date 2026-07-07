@@ -39,7 +39,7 @@ export function WaveformChart({
   if (!samples.length) {
     return (
       <div
-        className="flex items-center justify-center rounded-lg border border-[var(--color-border)]"
+        className="flex items-center justify-center rounded-lg border border-(--color-border)"
         style={{ height, color: "var(--color-muted)" }}
       >
         <span className="text-sm">No waveform data available.</span>
@@ -49,7 +49,7 @@ export function WaveformChart({
 
   return (
     <div
-      className="rounded-lg border border-[var(--color-border)] p-4"
+      className="rounded-lg border border-(--color-border) p-4"
       style={{ backgroundColor: "var(--color-card)" }}
     >
       <ResponsiveContainer width="100%" height={height}>

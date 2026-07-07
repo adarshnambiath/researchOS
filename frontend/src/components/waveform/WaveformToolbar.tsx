@@ -11,7 +11,7 @@ interface WaveformToolbarProps {
  */
 export function WaveformToolbar({ recordId, label }: WaveformToolbarProps) {
   return (
-    <div className="flex items-center justify-between rounded-lg border border-[var(--color-border)] px-4 py-3">
+    <div className="flex items-center justify-between rounded-lg border border-(--color-border) px-4 py-3">
       <div className="flex items-center gap-4 text-sm">
         <span style={{ color: "var(--color-text-secondary)" }}>
           Record ID:

@@ -63,17 +63,17 @@ export function WaveformViewerPage() {
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         {backTarget && (
-          <Link to={backTarget} className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">
+          <Link to={backTarget} className="text-sm text-(--color-text-secondary) hover:text-(--color-text-primary)">
             <ArrowLeft className="h-4 w-4 inline mr-1" /> {backLabel}
           </Link>
         )}
       </div>
 
       <div>
-        <h1 className="text-2xl font-semibold text-[var(--color-text-primary)]">
+        <h1 className="text-2xl font-semibold text-(--color-text-primary)">
           {waveformName}
         </h1>
-        <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
+        <p className="mt-1 text-sm text-(--color-text-secondary)">
           {recordIdParam ? `Record ${recordIdParam}` : "Waveform preview — first record from dataset"}
         </p>
       </div>

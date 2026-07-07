@@ -17,7 +17,7 @@ interface WaveformViewerProps {
 export function WaveformViewer({ record }: WaveformViewerProps) {
   return (
     <div className="space-y-6">
-      <section className="rounded-lg border border-[var(--color-border)] p-4">
+      <section className="rounded-lg border border-(--color-border) p-4">
         <div className="grid grid-cols-4 gap-4 text-sm">
           <div>
             <span className="text-xs" style={{ color: "var(--color-muted)" }}>

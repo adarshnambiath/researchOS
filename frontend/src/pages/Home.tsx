@@ -27,16 +27,16 @@ export function Home() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold text-[var(--color-text-primary)]">Welcome to Research OS</h1>
-        <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
+        <h1 className="text-2xl font-semibold text-(--color-text-primary)">Welcome to Research OS</h1>
+        <p className="mt-2 text-sm text-(--color-text-secondary)">
           Index, organize, and investigate experiment outputs without leaving your workspace.
         </p>
       </div>
 
       <section>
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-medium text-[var(--color-text-primary)]">Recent Datasets</h2>
-          <Link to="/datasets" className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">
+          <h2 className="text-lg font-medium text-(--color-text-primary)">Recent Datasets</h2>
+          <Link to="/datasets" className="text-sm text-(--color-text-secondary) hover:text-(--color-text-primary)">
             View all
           </Link>
         </div>
@@ -49,8 +49,8 @@ export function Home() {
 
       <section>
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-medium text-[var(--color-text-primary)]">Recent Experiments</h2>
-          <Link to="/experiments" className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">
+          <h2 className="text-lg font-medium text-(--color-text-primary)">Recent Experiments</h2>
+          <Link to="/experiments" className="text-sm text-(--color-text-secondary) hover:text-(--color-text-primary)">
             View all
           </Link>
         </div>
@@ -63,8 +63,8 @@ export function Home() {
 
       <section>
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-medium text-[var(--color-text-primary)]">Recent Runs</h2>
-          <Link to="/runs" className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">
+          <h2 className="text-lg font-medium text-(--color-text-primary)">Recent Runs</h2>
+          <Link to="/runs" className="text-sm text-(--color-text-secondary) hover:text-(--color-text-primary)">
             View all
           </Link>
         </div>

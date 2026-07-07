@@ -22,9 +22,9 @@ export function DatasetDetail() {
     return () => clearSelected();
   }, [id, loadOne, loadPreview, clearSelected]);
 
-  if (loading) return <div className="p-6 text-sm text-[var(--color-muted)]">Loading…</div>;
+  if (loading) return <div className="p-6 text-sm text-(--color-muted)">Loading…</div>;
   if (error) return <div className="p-6 text-sm text-red-600">{error}</div>;
-  if (!selected) return <div className="p-6 text-sm text-[var(--color-muted)]">Dataset not found.</div>;
+  if (!selected) return <div className="p-6 text-sm text-(--color-muted)">Dataset not found.</div>;
 
   const openEdit = () => {
     setForm({
@@ -52,44 +52,44 @@ export function DatasetDetail() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link to="/datasets" className="text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]">
+        <Link to="/datasets" className="text-sm text-(--color-text-secondary) hover:text-(--color-text-primary)">
           <ArrowLeft className="h-4 w-4 inline mr-1" /> Back
         </Link>
         <div className="flex-1">
-          <h1 className="text-2xl font-semibold text-[var(--color-text-primary)]">{selected.name}</h1>
-          <p className="text-sm text-[var(--color-text-secondary)]">
+          <h1 className="text-2xl font-semibold text-(--color-text-primary)">{selected.name}</h1>
+          <p className="text-sm text-(--color-text-secondary)">
             {selected.modality} · {(preview?.rows?.length ?? 0)} of {selected.row_count} rows shown
           </p>
         </div>
-        <button onClick={openEdit} className="inline-flex items-center gap-2 rounded-lg border border-[var(--color-border)] px-4 py-2 text-sm font-medium hover:bg-[var(--color-card)]">
+        <button onClick={openEdit} className="inline-flex items-center gap-2 rounded-lg border border-(--color-border) px-4 py-2 text-sm font-medium hover:bg-(--color-card)">
           <Pencil className="h-4 w-4" /> Edit
         </button>
       </div>
 
-      <section className="rounded-lg border border-[var(--color-border)] p-6">
-        <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Details</h3>
+      <section className="rounded-lg border border-(--color-border) p-6">
+        <h3 className="text-sm font-medium text-(--color-text-primary)">Details</h3>
         <dl className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <dt className="text-xs text-[var(--color-muted)]">Source Path</dt>
-            <dd className="mt-1 text-sm text-[var(--color-text-primary)] break-all">{selected.source_path}</dd>
+            <dt className="text-xs text-(--color-muted)">Source Path</dt>
+            <dd className="mt-1 text-sm text-(--color-text-primary) break-all">{selected.source_path}</dd>
           </div>
           <div>
-            <dt className="text-xs text-[var(--color-muted)]">Label Column</dt>
-            <dd className="mt-1 text-sm text-[var(--color-text-primary)]">{selected.label_column ?? "—"}</dd>
+            <dt className="text-xs text-(--color-muted)">Label Column</dt>
+            <dd className="mt-1 text-sm text-(--color-text-primary)">{selected.label_column ?? "—"}</dd>
           </div>
           <div>
-            <dt className="text-xs text-[var(--color-muted)]">Sample ID Column</dt>
-            <dd className="mt-1 text-sm text-[var(--color-text-primary)]">{selected.sample_id_column ?? "—"}</dd>
+            <dt className="text-xs text-(--color-muted)">Sample ID Column</dt>
+            <dd className="mt-1 text-sm text-(--color-text-primary)">{selected.sample_id_column ?? "—"}</dd>
           </div>
           <div>
-            <dt className="text-xs text-[var(--color-muted)]">Created</dt>
-            <dd className="mt-1 text-sm text-[var(--color-text-primary)]">{formatDate(selected.created_at)}</dd>
+            <dt className="text-xs text-(--color-muted)">Created</dt>
+            <dd className="mt-1 text-sm text-(--color-text-primary)">{formatDate(selected.created_at)}</dd>
           </div>
         </dl>
       </section>
 
-      <section className="rounded-lg border border-[var(--color-border)] p-6">
-        <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Schema</h3>
+      <section className="rounded-lg border border-(--color-border) p-6">
+        <h3 className="text-sm font-medium text-(--color-text-primary)">Schema</h3>
         <div className="mt-4 grid grid-cols-1 gap-2">
           {selected.waveform_definitions && selected.waveform_definitions.length > 0 ? (
             <>
@@ -117,34 +117,34 @@ export function DatasetDetail() {
                           return next;
                         })
                       }
-                      className="flex w-full items-center justify-between rounded-md border border-[var(--color-border)] px-3 py-2 text-left hover:bg-[var(--color-card)]"
+                      className="flex w-full items-center justify-between rounded-md border border-(--color-border) px-3 py-2 text-left hover:bg-(--color-card)"
                     >
                       <div className="flex items-center gap-2">
                         {isExpanded ? (
-                          <ChevronDown className="h-4 w-4 text-[var(--color-muted)]" />
+                          <ChevronDown className="h-4 w-4 text-(--color-muted)" />
                         ) : (
-                          <ChevronRight className="h-4 w-4 text-[var(--color-muted)]" />
+                          <ChevronRight className="h-4 w-4 text-(--color-muted)" />
                         )}
-                        <span className="text-sm font-medium text-[var(--color-text-primary)]">{waveform.name}</span>
-                        <span className="text-xs text-[var(--color-muted)]">
+                        <span className="text-sm font-medium text-(--color-text-primary)">{waveform.name}</span>
+                        <span className="text-xs text-(--color-muted)">
                           {waveform.start_column} → {waveform.end_column}
                         </span>
                       </div>
-                      <span className="text-xs text-[var(--color-muted)]">{columnsInWaveform.length} columns</span>
+                      <span className="text-xs text-(--color-muted)">{columnsInWaveform.length} columns</span>
                     </button>
                     {isExpanded && (
-                      <div className="mt-1 grid grid-cols-1 gap-1 rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2">
+                      <div className="mt-1 grid grid-cols-1 gap-1 rounded-md border border-(--color-border) bg-(--color-surface) px-3 py-2">
                         {columnsInWaveform.map((col) => (
-                          <div key={col.name} className="flex items-center justify-between rounded-md border border-[var(--color-border)] px-3 py-2 bg-white">
-                            <span className="text-sm text-[var(--color-text-primary)]">{col.name}</span>
+                          <div key={col.name} className="flex items-center justify-between rounded-md border border-(--color-border) px-3 py-2 bg-white">
+                            <span className="text-sm text-(--color-text-primary)">{col.name}</span>
                             <div className="flex items-center gap-3">
-                              <span className="text-xs text-[var(--color-muted)]">{waveform.name}</span>
-                              {col.nullable && <span className="text-xs text-[var(--color-muted)]">nullable</span>}
+                              <span className="text-xs text-(--color-muted)">{waveform.name}</span>
+                              {col.nullable && <span className="text-xs text-(--color-muted)">nullable</span>}
                             </div>
                           </div>
                         ))}
                         {!columnsInWaveform.length && (
-                          <div className="px-3 py-2 text-xs text-[var(--color-muted)]">
+                          <div className="px-3 py-2 text-xs text-(--color-muted)">
                             No matching columns found for range {waveform.start_column} → {waveform.end_column}.
                           </div>
                         )}
@@ -167,11 +167,11 @@ export function DatasetDetail() {
                 return (
                   <>
                     {remainingColumns.map((col) => (
-                      <div key={col.name} className="flex items-center justify-between rounded-md border border-[var(--color-border)] px-3 py-2">
-                        <span className="text-sm text-[var(--color-text-primary)]">{col.name}</span>
+                      <div key={col.name} className="flex items-center justify-between rounded-md border border-(--color-border) px-3 py-2">
+                        <span className="text-sm text-(--color-text-primary)">{col.name}</span>
                         <div className="flex items-center gap-3">
-                          <span className="text-xs text-[var(--color-muted)]">{col.type}</span>
-                          {col.nullable && <span className="text-xs text-[var(--color-muted)]">nullable</span>}
+                          <span className="text-xs text-(--color-muted)">{col.type}</span>
+                          {col.nullable && <span className="text-xs text-(--color-muted)">nullable</span>}
                         </div>
                       </div>
                     ))}
@@ -181,11 +181,11 @@ export function DatasetDetail() {
             </>
           ) : (
             selected.dataset_schema?.map((col) => (
-              <div key={col.name} className="flex items-center justify-between rounded-md border border-[var(--color-border)] px-3 py-2">
-                <span className="text-sm text-[var(--color-text-primary)]">{col.name}</span>
+              <div key={col.name} className="flex items-center justify-between rounded-md border border-(--color-border) px-3 py-2">
+                <span className="text-sm text-(--color-text-primary)">{col.name}</span>
                 <div className="flex items-center gap-3">
-                  <span className="text-xs text-[var(--color-muted)]">{col.type}</span>
-                  {col.nullable && <span className="text-xs text-[var(--color-muted)]">nullable</span>}
+                  <span className="text-xs text-(--color-muted)">{col.type}</span>
+                  {col.nullable && <span className="text-xs text-(--color-muted)">nullable</span>}
                 </div>
               </div>
             ))
@@ -193,25 +193,25 @@ export function DatasetDetail() {
         </div>
       </section>
 
-      <section className="rounded-lg border border-[var(--color-border)] p-6">
-        <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Preview (Live)</h3>
+      <section className="rounded-lg border border-(--color-border) p-6">
+        <h3 className="text-sm font-medium text-(--color-text-primary)">Preview (Live)</h3>
         {preview ? (
           <div className="mt-4 overflow-x-auto">
             <table className="min-w-full text-left text-sm">
-              <thead className="bg-[var(--color-card)]">
+              <thead className="bg-(--color-card)">
                 <tr>
                   {preview.columns?.map((col) => (
-                    <th key={col} className="px-3 py-2 font-medium text-[var(--color-text-secondary)]">
+                    <th key={col} className="px-3 py-2 font-medium text-(--color-text-secondary)">
                       {col}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--color-border)]">
+              <tbody className="divide-y divide-(--color-border)">
                 {preview.rows?.map((row, idx) => (
                   <tr key={idx}>
                     {preview.columns?.map((col) => (
-                      <td key={col} className="px-3 py-2 text-[var(--color-text-primary)]">
+                      <td key={col} className="px-3 py-2 text-(--color-text-primary)">
                         {String(row[col] ?? "—")}
                       </td>
                     ))}
@@ -221,21 +221,21 @@ export function DatasetDetail() {
             </table>
           </div>
         ) : (
-          <p className="mt-3 text-sm text-[var(--color-muted)]">Loading live preview…</p>
+          <p className="mt-3 text-sm text-(--color-muted)">Loading live preview…</p>
         )}
       </section>
 
       {selected.waveform_definitions && selected.waveform_definitions.length > 0 && (
-        <section className="rounded-lg border border-[var(--color-border)] p-6">
-          <h3 className="text-sm font-medium text-[var(--color-text-primary)]">Waveforms</h3>
+        <section className="rounded-lg border border-(--color-border) p-6">
+          <h3 className="text-sm font-medium text-(--color-text-primary)">Waveforms</h3>
           <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {selected.waveform_definitions.map((waveform) => (
               <div
                 key={waveform.name}
-                className="rounded-lg border border-[var(--color-border)] p-4"
+                className="rounded-lg border border-(--color-border) p-4"
                 style={{ backgroundColor: "var(--color-card)" }}
               >
-                <h4 className="text-sm font-medium text-[var(--color-text-primary)]">
+                <h4 className="text-sm font-medium text-(--color-text-primary)">
                   {waveform.name}
                 </h4>
                 <div className="mt-2 space-y-1 text-xs" style={{ color: "var(--color-text-secondary)" }}>
@@ -248,7 +248,7 @@ export function DatasetDetail() {
                   onClick={() =>
                     (window.location.href = `/datasets/${selected.id}/waveforms/${encodeURIComponent(waveform.name)}`)
                   }
-                  className="mt-3 inline-flex items-center gap-1 rounded-md bg-[var(--color-primary)] px-3 py-1.5 text-xs font-medium text-white hover:bg-[var(--color-hover-button)]"
+                  className="mt-3 inline-flex items-center gap-1 rounded-md bg-(--color-primary) px-3 py-1.5 text-xs font-medium text-white hover:bg-(--color-hover-button)"
                 >
                   Preview Waveform
                 </button>
@@ -263,7 +263,7 @@ export function DatasetDetail() {
           <form onSubmit={onSubmit} className="space-y-4">
             <FormField label="Name" required>
               <input
-                className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-(--color-border) px-3 py-2 text-sm"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 required
@@ -271,14 +271,14 @@ export function DatasetDetail() {
             </FormField>
             <FormField label="Modality">
               <input
-                className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-(--color-border) px-3 py-2 text-sm"
                 value={form.modality}
                 onChange={(e) => setForm({ ...form, modality: e.target.value })}
               />
             </FormField>
             <FormField label="Description">
               <textarea
-                className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-md border border-(--color-border) px-3 py-2 text-sm"
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
               />
@@ -286,24 +286,24 @@ export function DatasetDetail() {
             <div className="grid grid-cols-2 gap-4">
               <FormField label="Label Column">
                 <input
-                  className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-(--color-border) px-3 py-2 text-sm"
                   value={form.label_column}
                   onChange={(e) => setForm({ ...form, label_column: e.target.value })}
                 />
               </FormField>
               <FormField label="Sample ID Column">
                 <input
-                  className="mt-1 w-full rounded-md border border-[var(--color-border)] px-3 py-2 text-sm"
+                  className="mt-1 w-full rounded-md border border-(--color-border) px-3 py-2 text-sm"
                   value={form.sample_id_column}
                   onChange={(e) => setForm({ ...form, sample_id_column: e.target.value })}
                 />
               </FormField>
             </div>
             <div className="mt-6 flex justify-end gap-3">
-              <button type="button" onClick={() => setEditOpen(false)} className="rounded-md border border-[var(--color-border)] px-4 py-2 text-sm hover:bg-[var(--color-card)]">
+              <button type="button" onClick={() => setEditOpen(false)} className="rounded-md border border-(--color-border) px-4 py-2 text-sm hover:bg-(--color-card)">
                 Cancel
               </button>
-              <button type="submit" className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-hover-button)]">
+              <button type="submit" className="rounded-md bg-(--color-primary) px-4 py-2 text-sm font-medium text-white hover:bg-(--color-hover-button)">
                 Save
               </button>
             </div>
