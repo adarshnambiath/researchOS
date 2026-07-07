@@ -220,13 +220,13 @@ export function Datasets() {
 
 function FormModal({ title, onClose, onSubmit, children }: { title: string; onClose: () => void; onSubmit: (e: React.FormEvent) => Promise<void>; children: React.ReactNode }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--color-primary)]/40">
-      <div className="w-full max-w-xl rounded-lg bg-[var(--color-surface)] shadow">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--color-primary)]/40 p-4">
+      <div className="flex max-h-[calc(100vh-2rem)] w-full max-w-xl flex-col rounded-lg bg-[var(--color-surface)] shadow">
         <div className="flex items-center justify-between border-b border-[var(--color-border)] px-6 py-4">
           <h2 className="text-lg font-medium">{title}</h2>
           <button onClick={onClose} className="text-sm text-[var(--color-muted)] hover:text-[var(--color-text-primary)]">Close</button>
         </div>
-        <form onSubmit={onSubmit} className="p-6 space-y-4">
+        <form onSubmit={onSubmit} className="flex-1 space-y-4 overflow-y-auto p-6">
           {children}
         </form>
       </div>

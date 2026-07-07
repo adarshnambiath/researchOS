@@ -354,58 +354,8 @@ export function RunEvaluation() {
           <p className="text-sm text-[var(--color-muted)] italic">No metrics available yet.</p>
         )}
       </section>
-
-{/* ═════════════════════════════──────────
-         2. ARTIFACTS
-         ═══════════════════════════════════════════ */}
-      <section className="rounded-lg border border-[var(--color-border)] p-6">
-        <h2 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Artifacts</h2>
-        {artifactsLoading && <p className="text-sm text-[var(--color-muted)]">Loading artifacts…</p>}
-        {artifactsError && <p className="text-sm text-red-600">{artifactsError}</p>}
-        {!artifactsLoading && !artifactsError && artifacts.length > 0 && (
-          <div className="overflow-x-auto rounded-lg border border-[var(--color-border)]">
-            <table className="min-w-full text-left text-sm">
-              <thead className="bg-[var(--color-card)]">
-                <tr>
-                  <th className="px-4 py-2 font-medium text-[var(--color-text-secondary)]">Name</th>
-                  <th className="px-4 py-2 font-medium text-[var(--color-text-secondary)]">Type</th>
-                  <th className="px-4 py-2 font-medium text-[var(--color-text-secondary)]">Path</th>
-                  <th className="px-4 py-2 font-medium text-[var(--color-text-secondary)]">Timestamp</th>
-                  <th className="px-4 py-2 font-medium text-[var(--color-text-secondary)]">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--color-border)]">
-                {artifacts.map((art, idx) => (
-                  <tr key={idx} className="hover:bg-[var(--color-card)]">
-                    <td className="px-4 py-2 text-[var(--color-text-primary)] font-medium">{art.name || "—"}</td>
-                    <td className="px-4 py-2 text-[var(--color-text-primary)]">
-                      <code className="rounded bg-[var(--color-card)] px-1 py-0.5 text-xs">{art.type}</code>
-                    </td>
-                    <td className="px-4 py-2 text-[var(--color-muted)] font-mono text-xs max-w-[300px] truncate" title={art.path}>{art.path}</td>
-                    <td className="px-4 py-2 text-[var(--color-muted)] text-xs">{art.timestamp || "—"}</td>
-                    <td className="px-4 py-2">
-                      {art.available ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
-                          <Check className="h-3 w-3" /> Available
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-hover)] px-2 py-0.5 text-xs font-medium text-[var(--color-muted)]">
-                          <X className="h-3 w-3" /> Missing
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        {!artifactsLoading && !artifactsError && artifacts.length === 0 && (
-          <p className="text-sm text-[var(--color-muted)] italic">No artifacts registered yet.</p>
-        )}
-      </section>
       {/* ═══════════════════════════════════════════
-         3. EVALUATION TABLE
+         2. EVALUATION TABLE
          ═══════════════════════════════════════════ */}
       <section className="rounded-lg border border-[var(--color-border)] p-6">
         <div className="flex items-center justify-between mb-4">
@@ -500,6 +450,55 @@ export function RunEvaluation() {
                 className="rounded-md border border-[var(--color-border)] px-3 py-1 disabled:opacity-50 hover:bg-[var(--color-card)]">Next</button>
             </div>
           </div>
+        )}
+      </section>
+      {/* ═════════════════════════════──────────
+         3. ARTIFACTS
+         ═══════════════════════════════════════════ */}
+      <section className="rounded-lg border border-[var(--color-border)] p-6">
+        <h2 className="text-sm font-medium text-[var(--color-text-primary)] mb-4">Artifacts</h2>
+        {artifactsLoading && <p className="text-sm text-[var(--color-muted)]">Loading artifacts…</p>}
+        {artifactsError && <p className="text-sm text-red-600">{artifactsError}</p>}
+        {!artifactsLoading && !artifactsError && artifacts.length > 0 && (
+          <div className="overflow-x-auto rounded-lg border border-[var(--color-border)]">
+            <table className="min-w-full text-left text-sm">
+              <thead className="bg-[var(--color-card)]">
+                <tr>
+                  <th className="px-4 py-2 font-medium text-[var(--color-text-secondary)]">Name</th>
+                  <th className="px-4 py-2 font-medium text-[var(--color-text-secondary)]">Type</th>
+                  <th className="px-4 py-2 font-medium text-[var(--color-text-secondary)]">Path</th>
+                  <th className="px-4 py-2 font-medium text-[var(--color-text-secondary)]">Timestamp</th>
+                  <th className="px-4 py-2 font-medium text-[var(--color-text-secondary)]">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--color-border)]">
+                {artifacts.map((art, idx) => (
+                  <tr key={idx} className="hover:bg-[var(--color-card)]">
+                    <td className="px-4 py-2 text-[var(--color-text-primary)] font-medium">{art.name || "—"}</td>
+                    <td className="px-4 py-2 text-[var(--color-text-primary)]">
+                      <code className="rounded bg-[var(--color-card)] px-1 py-0.5 text-xs">{art.type}</code>
+                    </td>
+                    <td className="px-4 py-2 text-[var(--color-muted)] font-mono text-xs max-w-[300px] truncate" title={art.path}>{art.path}</td>
+                    <td className="px-4 py-2 text-[var(--color-muted)] text-xs">{art.timestamp || "—"}</td>
+                    <td className="px-4 py-2">
+                      {art.available ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                          <Check className="h-3 w-3" /> Available
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-[var(--color-hover)] px-2 py-0.5 text-xs font-medium text-[var(--color-muted)]">
+                          <X className="h-3 w-3" /> Missing
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        {!artifactsLoading && !artifactsError && artifacts.length === 0 && (
+          <p className="text-sm text-[var(--color-muted)] italic">No artifacts registered yet.</p>
         )}
       </section>
 
