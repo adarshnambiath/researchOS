@@ -195,9 +195,12 @@ research-os/
 │   │   └── icons.svg
 │   │
 │   └── src/
-│       ├── main.tsx                # React entry point
+│       ├── main.tsx                # React entry point + CSS variable injection from palette
 │       ├── App.tsx                 # Router setup, layout wrapper
-│       ├── index.css               # Tailwind CSS v4 import + global styles
+│       ├── index.css               # Tailwind CSS v4 import + global styles + CSS variables
+│       │
+│       ├── theme/
+│       │   └── palette.ts          # Single source of truth for all colors
 │       │
 │       ├── api/                    # Axios client + endpoint modules
 │       │   ├── client.ts           # Axios instance with baseURL
@@ -205,6 +208,7 @@ research-os/
 │       │   ├── experiments.ts
 │       │   ├── runs.ts
 │       │   ├── outputs.ts
+│       │   ├── evaluation.ts
 │       │   └── investigation.ts
 │       │
 │       ├── stores/                 # Zustand state stores
@@ -218,7 +222,8 @@ research-os/
 │       │   ├── TopBar.tsx          # Top bar with breadcrumbs
 │       │   ├── DataTable.tsx       # Generic table component
 │       │   ├── CodeBlock.tsx       # Syntax-highlighted code snippet
-│       │   ├── Modal.tsx           # Slide-over / modal for row detail
+│       │   ├── Modal.tsx           # Modal for row detail / forms
+│       │   ├── FormField.tsx       # Labeled form field wrapper
 │       │   └── EmptyState.tsx      # Empty state placeholder
 │       │
 │       ├── pages/                  # Route-level page components
@@ -229,6 +234,7 @@ research-os/
 │       │   ├── ExperimentDetail.tsx
 │       │   ├── Runs.tsx
 │       │   ├── RunDetail.tsx
+│       │   ├── RunEvaluation.tsx
 │       │   └── Investigation.tsx
 │       │
 │       └── lib/                    # Utility functions

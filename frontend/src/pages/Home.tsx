@@ -122,7 +122,8 @@ function RunsTable({ runs }: { runs: RunListItem[] }) {
         { header: "Created", accessor: "created_at" as any, width: "180px" },
       ]}
       data={runs as never[]}
-      onRowClick={(row) => (window.location.href = `/runs/${(row as any).id}`)}
+      //onRowClick={(row) => (window.location.href = `/runs/${(row as any).id}`)}
+      
     />
   );
 }

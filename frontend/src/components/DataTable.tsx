@@ -13,7 +13,12 @@ interface DataTableProps<T> {
   empty?: ReactNode;
 }
 
-export function DataTable<T>({ columns, data, onRowClick, empty }: DataTableProps<T>) {
+export function DataTable<T>({
+  columns,
+  data,
+  onRowClick,
+  empty,
+}: DataTableProps<T>) {
   if (!data.length) {
     return (
       <div
@@ -23,7 +28,10 @@ export function DataTable<T>({ columns, data, onRowClick, empty }: DataTableProp
           backgroundColor: "var(--color-card)",
         }}
       >
-        <div className="p-8 text-center text-sm" style={{ color: "var(--color-muted)" }}>
+        <div
+          className="p-8 text-center text-sm"
+          style={{ color: "var(--color-muted)" }}
+        >
           {empty || "No records found."}
         </div>
       </div>
@@ -45,7 +53,10 @@ export function DataTable<T>({ columns, data, onRowClick, empty }: DataTableProp
               {columns.map((col, idx) => (
                 <th
                   key={idx}
-                  style={{ width: col.width, color: "var(--color-text-secondary)" }}
+                  style={{
+                    width: col.width,
+                    color: "var(--color-text-secondary)",
+                  }}
                   className="px-4 py-2.5 font-medium text-xs uppercase tracking-wider"
                 >
                   {col.header}
@@ -55,14 +66,25 @@ export function DataTable<T>({ columns, data, onRowClick, empty }: DataTableProp
           </thead>
           <tbody
             className="divide-y"
-            style={{ borderColor: "var(--color-border)" }}
+            style={{
+              borderColor: "var(--color-border)",
+              ["--tw-divide-opacity" as any]: 0.5,
+              ["--tw-divide-color" as any]: "var(--color-border)",
+            }}
           >
             {data.map((row, idx) => (
               <tr
-                key={idx}
-                onClick={() => onRowClick?.(row)}
-                className="cursor-pointer transition-colors duration-150"
-              >
+  key={idx}
+  onClick={() => onRowClick?.(row)}
+  className={`border-b transition-colors duration-150 ${
+    onRowClick
+      ? "cursor-pointer hover:bg-[var(--color-hover)]"
+      : "cursor-default"
+  }`}
+  style={{
+    borderColor: "var(--color-border)",
+  }}
+>
                 {columns.map((col, colIdx) => (
                   <td
                     key={colIdx}
@@ -71,7 +93,11 @@ export function DataTable<T>({ columns, data, onRowClick, empty }: DataTableProp
                   >
                     {typeof col.accessor === "function"
                       ? col.accessor(row)
-                      : String((row as Record<string, unknown>)[col.accessor as string] ?? "—")}
+                      : String(
+                          (row as Record<string, unknown>)[
+                            col.accessor as string
+                          ] ?? "—",
+                        )}
                   </td>
                 ))}
               </tr>
@@ -82,4 +108,3 @@ export function DataTable<T>({ columns, data, onRowClick, empty }: DataTableProp
     </div>
   );
 }
-

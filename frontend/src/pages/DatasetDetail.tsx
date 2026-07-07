@@ -179,7 +179,7 @@ export function DatasetDetail() {
               <button type="button" onClick={() => setEditOpen(false)} className="rounded-md border border-[var(--color-border)] px-4 py-2 text-sm hover:bg-[var(--color-card)]">
                 Cancel
               </button>
-              <button type="submit" className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-hover)]">
+              <button type="submit" className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-hover-button)]">
                 Save
               </button>
             </div>

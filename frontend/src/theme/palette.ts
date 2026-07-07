@@ -19,6 +19,7 @@ export const palette = {
 
   card: "#FFFFFF",
   hover: "#EFF6FF",           // Light blue hover
+  hoverButton: "#2196F3",     // Placeholder for button hover
   input: "#FFFFFF",
 
   success: "#16A34A",

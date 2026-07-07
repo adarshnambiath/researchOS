@@ -48,7 +48,7 @@ export function Datasets() {
         </div>
         <button
           onClick={() => setOpen(true)}
-          className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-hover)]"
+          className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-hover-button)]"
         >
           <Plus className="h-4 w-4" /> Register Dataset
         </button>
@@ -86,7 +86,7 @@ export function Datasets() {
           onRowClick={(row) => (window.location.href = `/datasets/${(row as any).id}`)}
           empty={
             <EmptyState title="No datasets registered" description="Register a CSV to begin." action={
-              <button onClick={() => setOpen(true)} className="rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-hover)]">Register Dataset</button>
+              <button onClick={() => setOpen(true)} className="rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-hover-button)]">Register Dataset</button>
             } />
           }
         />
@@ -116,7 +116,7 @@ export function Datasets() {
           </FormField>
           <div className="mt-6 flex justify-end gap-3">
             <button type="button" onClick={() => setOpen(false)} className="rounded-md border border-[var(--color-border)] px-4 py-2 text-sm hover:bg-[var(--color-card)]">Cancel</button>
-            <button type="submit" className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-hover)]">Register</button>
+            <button type="submit" className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-hover-button)]">Register</button>
           </div>
         </FormModal>
       )}

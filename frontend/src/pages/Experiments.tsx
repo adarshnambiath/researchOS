@@ -36,7 +36,7 @@ export function Experiments() {
           <h1 className="text-2xl font-semibold text-[var(--color-text-primary)]">Experiments</h1>
           <p className="mt-1 text-sm text-[var(--color-text-secondary)]">Group runs under a dataset and research question.</p>
         </div>
-        <button onClick={() => setOpen(true)} className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-hover)]">
+        <button onClick={() => setOpen(true)} className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-hover-button)]">
           <Plus className="h-4 w-4" /> New Experiment
         </button>
       </div>
@@ -105,7 +105,7 @@ export function Experiments() {
           </div>
           <div className="mt-6 flex justify-end gap-3">
             <button type="button" onClick={() => setOpen(false)} className="rounded-md border border-[var(--color-border)] px-4 py-2 text-sm hover:bg-[var(--color-card)]">Cancel</button>
-            <button type="submit" className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-hover)]">Create</button>
+            <button type="submit" className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-hover-button)]">Create</button>
           </div>
         </FormModal>
       )}

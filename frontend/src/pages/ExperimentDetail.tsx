@@ -103,7 +103,7 @@ export function ExperimentDetail() {
           </button>
           <button
             onClick={() => setRunOpen(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-hover)]"
+            className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-hover-button)]"
           >
             <Plus className="h-4 w-4" /> New Run
           </button>
@@ -234,7 +234,7 @@ export function ExperimentDetail() {
               </button>
               <button
                 type="submit"
-                className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-hover)]"
+                className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-hover-button)]"
               >
                 Save
               </button>
@@ -285,7 +285,7 @@ export function ExperimentDetail() {
               </button>
               <button
                 type="submit"
-                className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-hover)]"
+                className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--color-hover-button)]"
               >
                 Create
               </button>

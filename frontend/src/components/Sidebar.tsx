@@ -35,7 +35,7 @@ export function Sidebar() {
             }
             style={({ isActive }) => ({
               backgroundColor: isActive ? "var(--color-primary)" : "transparent",
-              color: isActive ? "var(--color-text-primary)" : "var(--color-text-secondary)",
+              color: isActive ? "#FFFFFF" : "var(--color-text-secondary)",
             })}
           >
             <svg
