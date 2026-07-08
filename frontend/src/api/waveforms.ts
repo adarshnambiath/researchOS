@@ -18,6 +18,7 @@ export interface WaveformRecord {
   channel_names?: string[] | null;
   channel_units?: string[] | null;
   all_channels?: number[][] | null;
+  total_samples?: number | null;
 }
 
 export const fetchWaveformDefinitions = (datasetId: number) =>
@@ -34,9 +35,14 @@ export const fetchWaveformRecord = (
   datasetId: number,
   waveformName: string,
   recordId: string,
-) =>
-  api
-    .get<WaveformRecord>(
-      `/api/datasets/${datasetId}/waveforms/${encodeURIComponent(waveformName)}/record/${encodeURIComponent(recordId)}`,
-    )
-    .then((r) => r.data);
+  startSample?: number,
+  numSamples?: number,
+) => {
+  let url = `/api/datasets/${datasetId}/waveforms/${encodeURIComponent(waveformName)}/record/${encodeURIComponent(recordId)}`;
+  const params = new URLSearchParams();
+  if (startSample !== undefined && startSample > 0) params.set("start_sample", String(startSample));
+  if (numSamples !== undefined) params.set("num_samples", String(numSamples));
+  const qs = params.toString();
+  if (qs) url += `?${qs}`;
+  return api.get<WaveformRecord>(url).then((r) => r.data);
+};

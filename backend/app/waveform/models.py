@@ -17,6 +17,7 @@ class WaveformRecord(BaseModel):
     channel_names: list[str] | None = None
     channel_units: list[str] | None = None
     all_channels: list[list[float]] | None = None
+    total_samples: int | None = None
 
 
 class WaveformListItem(BaseModel):

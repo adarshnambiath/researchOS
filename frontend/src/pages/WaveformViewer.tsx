@@ -30,26 +30,42 @@ export function WaveformViewerPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [startTime, setStartTime] = useState(0);
+  const [windowDuration, setWindowDuration] = useState(10);
+  const [activeRecordId, setActiveRecordId] = useState<string | null>(null);
+
+  const sr = record?.sampling_rate_hz;
+
+  const loadRecord = (recordId: string, startSec: number, durationSec: number) => {
+    const startSample = Math.round(startSec * (sr ?? 360));
+    const numSamples = Math.round(durationSec * (sr ?? 360));
+    setLoading(true);
+    setError(null);
+    setActiveRecordId(recordId);
+    fetchWaveformRecord(Number(datasetId), waveformName!, recordId, startSample, numSamples)
+      .then((data) => {
+        setRecord(data);
+        setLoading(false);
+      })
+      .catch((e) => {
+        setError((e as Error).message);
+        setLoading(false);
+      });
+  };
+
   useEffect(() => {
     if (!datasetId || !waveformName) return;
 
-    setLoading(true);
-    setError(null);
-
     if (recordIdParam) {
-      fetchWaveformRecord(Number(datasetId), waveformName, recordIdParam)
-        .then((data) => {
-          setRecord(data);
-          setLoading(false);
-        })
-        .catch((e) => {
-          setError((e as Error).message);
-          setLoading(false);
-        });
+      setActiveRecordId(recordIdParam);
+      loadRecord(recordIdParam, startTime, windowDuration);
     } else {
+      setLoading(true);
+      setError(null);
       fetchWaveformPreview(Number(datasetId), waveformName)
         .then((data) => {
           setRecord(data);
+          setActiveRecordId(null);
           setLoading(false);
         })
         .catch((e) => {
@@ -57,7 +73,10 @@ export function WaveformViewerPage() {
           setLoading(false);
         });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [datasetId, waveformName, recordIdParam]);
+
+  const totalSec = record?.total_samples != null && sr ? record.total_samples / sr : null;
 
   return (
     <div className="space-y-6">
@@ -77,6 +96,50 @@ export function WaveformViewerPage() {
           {recordIdParam ? `Record ${recordIdParam}` : "Waveform preview — first record from dataset"}
         </p>
       </div>
+
+      {activeRecordId && (
+        <section className="rounded-lg border border-(--color-border) p-4">
+          <div className="flex flex-wrap items-center gap-3 text-sm">
+            <span className="text-xs font-medium text-(--color-muted)">Window</span>
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-(--color-muted)">Start:</span>
+              <input
+                type="number"
+                min={0}
+                step={0.5}
+                value={startTime}
+                onChange={(e) => setStartTime(Number(e.target.value))}
+                className="w-20 rounded-md border border-(--color-border) px-2 py-1 text-sm"
+              />
+              <span className="text-xs text-(--color-muted)">s</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-(--color-muted)">Duration:</span>
+              <input
+                type="number"
+                min={1}
+                step={1}
+                value={windowDuration}
+                onChange={(e) => setWindowDuration(Number(e.target.value))}
+                className="w-20 rounded-md border border-(--color-border) px-2 py-1 text-sm"
+              />
+              <span className="text-xs text-(--color-muted)">s</span>
+            </div>
+            {totalSec != null && (
+              <span className="text-xs text-(--color-muted)">
+                (max {totalSec.toFixed(0)} s)
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={() => loadRecord(activeRecordId, startTime, windowDuration)}
+              className="rounded-md bg-(--color-primary) px-3 py-1.5 text-xs font-medium text-white hover:bg-(--color-hover-button)"
+            >
+              Load
+            </button>
+          </div>
+        </section>
+      )}
 
       {loading && (
         <div className="p-8 text-center text-sm" style={{ color: "var(--color-muted)" }}>

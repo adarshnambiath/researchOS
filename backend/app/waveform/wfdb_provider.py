@@ -91,6 +91,7 @@ class WFDBWaveformProvider(WaveformProvider):
         num_channels: int = record.n_sig
         sig_names: list[str] | None = record.sig_name
         sig_units: list[str] | None = record.units
+        total_sig_len: int = record.sig_len
 
         all_channels = [sig[:, ch].tolist() for ch in range(num_channels)]
 
@@ -103,6 +104,7 @@ class WFDBWaveformProvider(WaveformProvider):
             channel_names=list(sig_names) if sig_names else None,
             channel_units=list(sig_units) if sig_units else None,
             all_channels=all_channels,
+            total_samples=total_sig_len,
         )
         return result
 
