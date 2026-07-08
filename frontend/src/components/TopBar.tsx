@@ -1,12 +1,3 @@
-import { useLocation } from "react-router-dom";
-
-const pathToTitle: Record<string, string> = {
-  "/": "Home",
-  "/datasets": "Datasets",
-  "/experiments": "Experiments",
-  "/runs": "Runs",
-};
-
 export function TopBar() {
   return (
     <header
