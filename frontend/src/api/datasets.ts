@@ -16,6 +16,23 @@ export interface WaveformDefinitionShape {
   units?: string | null;
 }
 
+export interface WFDBRecordMetadataShape {
+  record_name: string;
+  sampling_rate?: number | null;
+  channel_names?: string[] | null;
+  signal_units?: string[] | null;
+  number_of_channels?: number | null;
+}
+
+export interface WFDBDatasetMetadataShape {
+  number_of_records: number;
+  records: WFDBRecordMetadataShape[];
+  sampling_rate?: number | null;
+  channel_names?: string[] | null;
+  signal_units?: string[] | null;
+  number_of_channels?: number | null;
+}
+
 export interface DatasetDetail extends DatasetListItem {
   description: string | null;
   source_path: string;
@@ -34,6 +51,7 @@ export interface DatasetDetail extends DatasetListItem {
     units?: string;
   }> | null;
   waveform_definitions: WaveformDefinitionShape[] | null;
+  wfdb_metadata: WFDBDatasetMetadataShape | null;
   created_at: string;
 }
 

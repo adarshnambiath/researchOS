@@ -29,6 +29,20 @@ export interface DatasetStore {
       sampling_rate?: number;
       units?: string | null;
     }> | null;
+    wfdb_metadata: {
+      number_of_records: number;
+      records: Array<{
+        record_name: string;
+        sampling_rate?: number | null;
+        channel_names?: string[] | null;
+        signal_units?: string[] | null;
+        number_of_channels?: number | null;
+      }>;
+      sampling_rate?: number | null;
+      channel_names?: string[] | null;
+      signal_units?: string[] | null;
+      number_of_channels?: number | null;
+    } | null;
   } | null;
   preview: DatasetPreview | null;
   loading: boolean;

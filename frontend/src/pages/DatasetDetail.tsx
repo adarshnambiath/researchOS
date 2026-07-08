@@ -58,7 +58,9 @@ export function DatasetDetail() {
         <div className="flex-1">
           <h1 className="text-2xl font-semibold text-(--color-text-primary)">{selected.name}</h1>
           <p className="text-sm text-(--color-text-secondary)">
-            {selected.modality} · {(preview?.rows?.length ?? 0)} of {selected.row_count} rows shown
+            {selected.modality === "ecg_wfdb"
+              ? `ECG (WFDB) · ${selected.row_count} records`
+              : `${selected.modality} · ${(preview?.rows?.length ?? 0)} of ${selected.row_count} rows shown`}
           </p>
         </div>
         <button onClick={openEdit} className="inline-flex items-center gap-2 rounded-lg border border-(--color-border) px-4 py-2 text-sm font-medium hover:bg-(--color-card)">
@@ -73,18 +75,62 @@ export function DatasetDetail() {
             <dt className="text-xs text-(--color-muted)">Source Path</dt>
             <dd className="mt-1 text-sm text-(--color-text-primary) break-all">{selected.source_path}</dd>
           </div>
-          <div>
-            <dt className="text-xs text-(--color-muted)">Label Column</dt>
-            <dd className="mt-1 text-sm text-(--color-text-primary)">{selected.label_column ?? "—"}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-(--color-muted)">Sample ID Column</dt>
-            <dd className="mt-1 text-sm text-(--color-text-primary)">{selected.sample_id_column ?? "—"}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-(--color-muted)">Created</dt>
-            <dd className="mt-1 text-sm text-(--color-text-primary)">{formatDate(selected.created_at)}</dd>
-          </div>
+          {selected.modality === "ecg_wfdb" && selected.wfdb_metadata ? (
+            <>
+              <div>
+                <dt className="text-xs text-(--color-muted)">Dataset Type</dt>
+                <dd className="mt-1 text-sm text-(--color-text-primary)">ECG (WFDB)</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-(--color-muted)">Number of Records</dt>
+                <dd className="mt-1 text-sm text-(--color-text-primary)">{selected.wfdb_metadata.number_of_records}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-(--color-muted)">Directory</dt>
+                <dd className="mt-1 text-sm text-(--color-text-primary) break-all">{selected.source_path}</dd>
+              </div>
+              {selected.wfdb_metadata.sampling_rate != null && (
+                <div>
+                  <dt className="text-xs text-(--color-muted)">Sampling Rate</dt>
+                  <dd className="mt-1 text-sm text-(--color-text-primary)">{selected.wfdb_metadata.sampling_rate} Hz</dd>
+                </div>
+              )}
+              {selected.wfdb_metadata.channel_names && selected.wfdb_metadata.channel_names.length > 0 && (
+                <div className="sm:col-span-2">
+                  <dt className="text-xs text-(--color-muted)">Channels</dt>
+                  <dd className="mt-1 text-sm text-(--color-text-primary)">{selected.wfdb_metadata.channel_names.join(", ")}</dd>
+                </div>
+              )}
+              {selected.wfdb_metadata.signal_units && selected.wfdb_metadata.signal_units.length > 0 && (
+                <div className="sm:col-span-2">
+                  <dt className="text-xs text-(--color-muted)">Units</dt>
+                  <dd className="mt-1 text-sm text-(--color-text-primary)">{selected.wfdb_metadata.signal_units.join(", ")}</dd>
+                </div>
+              )}
+              <div className="sm:col-span-2">
+                <dt className="text-xs text-(--color-muted)">Records</dt>
+                <dd className="mt-1 text-sm text-(--color-text-primary)">
+                  {selected.wfdb_metadata.records.slice(0, 10).map((record) => record.record_name).join(", ")}
+                  {selected.wfdb_metadata.records.length > 10 ? " ..." : ""}
+                </dd>
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <dt className="text-xs text-(--color-muted)">Label Column</dt>
+                <dd className="mt-1 text-sm text-(--color-text-primary)">{selected.label_column ?? "—"}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-(--color-muted)">Sample ID Column</dt>
+                <dd className="mt-1 text-sm text-(--color-text-primary)">{selected.sample_id_column ?? "—"}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-(--color-muted)">Created</dt>
+                <dd className="mt-1 text-sm text-(--color-text-primary)">{formatDate(selected.created_at)}</dd>
+              </div>
+            </>
+          )}
         </dl>
       </section>
 
@@ -138,16 +184,11 @@ export function DatasetDetail() {
                           <div key={col.name} className="flex items-center justify-between rounded-md border border-(--color-border) px-3 py-2 bg-white">
                             <span className="text-sm text-(--color-text-primary)">{col.name}</span>
                             <div className="flex items-center gap-3">
-                              <span className="text-xs text-(--color-muted)">{waveform.name}</span>
+                              <span className="text-xs text-(--color-muted)">{col.type}</span>
                               {col.nullable && <span className="text-xs text-(--color-muted)">nullable</span>}
                             </div>
                           </div>
                         ))}
-                        {!columnsInWaveform.length && (
-                          <div className="px-3 py-2 text-xs text-(--color-muted)">
-                            No matching columns found for range {waveform.start_column} → {waveform.end_column}.
-                          </div>
-                        )}
                       </div>
                     )}
                   </div>
@@ -180,83 +221,24 @@ export function DatasetDetail() {
               })() : null}
             </>
           ) : (
-            selected.dataset_schema?.map((col) => (
-              <div key={col.name} className="flex items-center justify-between rounded-md border border-(--color-border) px-3 py-2">
-                <span className="text-sm text-(--color-text-primary)">{col.name}</span>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-(--color-muted)">{col.type}</span>
-                  {col.nullable && <span className="text-xs text-(--color-muted)">nullable</span>}
-                </div>
-              </div>
-            ))
+            selected.dataset_schema?.length ? (
+              <>
+                {selected.dataset_schema.map((col) => (
+                  <div key={col.name} className="flex items-center justify-between rounded-md border border-(--color-border) px-3 py-2">
+                    <span className="text-sm text-(--color-text-primary)">{col.name}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-(--color-muted)">{col.type}</span>
+                      {col.nullable && <span className="text-xs text-(--color-muted)">nullable</span>}
+                    </div>
+                  </div>
+                ))}
+              </>
+            ) : (
+              <div className="px-3 py-2 text-xs text-(--color-muted)">No schema available.</div>
+            )
           )}
         </div>
       </section>
-
-      <section className="rounded-lg border border-(--color-border) p-6">
-        <h3 className="text-sm font-medium text-(--color-text-primary)">Preview (Live)</h3>
-        {preview ? (
-          <div className="mt-4 overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-              <thead className="bg-(--color-card)">
-                <tr>
-                  {preview.columns?.map((col) => (
-                    <th key={col} className="px-3 py-2 font-medium text-(--color-text-secondary)">
-                      {col}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-(--color-border)">
-                {preview.rows?.map((row, idx) => (
-                  <tr key={idx}>
-                    {preview.columns?.map((col) => (
-                      <td key={col} className="px-3 py-2 text-(--color-text-primary)">
-                        {String(row[col] ?? "—")}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p className="mt-3 text-sm text-(--color-muted)">Loading live preview…</p>
-        )}
-      </section>
-
-      {selected.waveform_definitions && selected.waveform_definitions.length > 0 && (
-        <section className="rounded-lg border border-(--color-border) p-6">
-          <h3 className="text-sm font-medium text-(--color-text-primary)">Waveforms</h3>
-          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {selected.waveform_definitions.map((waveform) => (
-              <div
-                key={waveform.name}
-                className="rounded-lg border border-(--color-border) p-4"
-                style={{ backgroundColor: "var(--color-card)" }}
-              >
-                <h4 className="text-sm font-medium text-(--color-text-primary)">
-                  {waveform.name}
-                </h4>
-                <div className="mt-2 space-y-1 text-xs" style={{ color: "var(--color-text-secondary)" }}>
-                  {waveform.sampling_rate && <p>Sampling Rate: {waveform.sampling_rate} Hz</p>}
-                  {waveform.units && <p>Units: {waveform.units}</p>}
-                  <p>Columns: {waveform.start_column} → {waveform.end_column}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() =>
-                    (window.location.href = `/datasets/${selected.id}/waveforms/${encodeURIComponent(waveform.name)}`)
-                  }
-                  className="mt-3 inline-flex items-center gap-1 rounded-md bg-(--color-primary) px-3 py-1.5 text-xs font-medium text-white hover:bg-(--color-hover-button)"
-                >
-                  Preview Waveform
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
       {editOpen && (
         <Modal title="Edit Dataset" onClose={() => setEditOpen(false)}>
@@ -270,11 +252,14 @@ export function DatasetDetail() {
               />
             </FormField>
             <FormField label="Modality">
-              <input
+              <select
                 className="mt-1 w-full rounded-md border border-(--color-border) px-3 py-2 text-sm"
                 value={form.modality}
                 onChange={(e) => setForm({ ...form, modality: e.target.value })}
-              />
+              >
+                <option value="tabular">Tabular</option>
+                <option value="ecg_wfdb">ECG (WFDB)</option>
+              </select>
             </FormField>
             <FormField label="Description">
               <textarea
@@ -283,22 +268,24 @@ export function DatasetDetail() {
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
               />
             </FormField>
-            <div className="grid grid-cols-2 gap-4">
-              <FormField label="Label Column">
-                <input
-                  className="mt-1 w-full rounded-md border border-(--color-border) px-3 py-2 text-sm"
-                  value={form.label_column}
-                  onChange={(e) => setForm({ ...form, label_column: e.target.value })}
-                />
-              </FormField>
-              <FormField label="Sample ID Column">
-                <input
-                  className="mt-1 w-full rounded-md border border-(--color-border) px-3 py-2 text-sm"
-                  value={form.sample_id_column}
-                  onChange={(e) => setForm({ ...form, sample_id_column: e.target.value })}
-                />
-              </FormField>
-            </div>
+            {form.modality === "tabular" && (
+              <div className="grid grid-cols-2 gap-4">
+                <FormField label="Label Column">
+                  <input
+                    className="mt-1 w-full rounded-md border border-(--color-border) px-3 py-2 text-sm"
+                    value={form.label_column}
+                    onChange={(e) => setForm({ ...form, label_column: e.target.value })}
+                  />
+                </FormField>
+                <FormField label="Sample ID Column">
+                  <input
+                    className="mt-1 w-full rounded-md border border-(--color-border) px-3 py-2 text-sm"
+                    value={form.sample_id_column}
+                    onChange={(e) => setForm({ ...form, sample_id_column: e.target.value })}
+                  />
+                </FormField>
+              </div>
+            )}
             <div className="mt-6 flex justify-end gap-3">
               <button type="button" onClick={() => setEditOpen(false)} className="rounded-md border border-(--color-border) px-4 py-2 text-sm hover:bg-(--color-card)">
                 Cancel

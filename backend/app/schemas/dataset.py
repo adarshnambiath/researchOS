@@ -38,10 +38,37 @@ class WaveformDefinition(BaseModel):
     units: str | None = None
 
 
+class WFDBRecordMetadata(BaseModel):
+    record_name: str
+    sampling_rate: float | None = None
+    channel_names: list[str] | None = None
+    signal_units: list[str] | None = None
+    number_of_channels: int | None = None
+
+
+class WFDBDatasetMetadata(BaseModel):
+    number_of_records: int
+    records: list[WFDBRecordMetadata]
+    sampling_rate: float | None = None
+    channel_names: list[str] | None = None
+    signal_units: list[str] | None = None
+    number_of_channels: int | None = None
+
+    def to_schema_json(self) -> str:
+        return self.model_dump_json()
+
+    @classmethod
+    def from_schema_json(cls, raw: str | None) -> "WFDBDatasetMetadata | None":
+        if not raw:
+            return None
+        return cls.model_validate_json(raw)
+
+
 class DatasetMetadata(BaseModel):
     columns: list[ColumnMetadata]
     row_count: int
     waveform_definitions: list[WaveformDefinition] | None = None
+    wfdb: WFDBDatasetMetadata | None = None
 
     def to_schema_json(self) -> str:
         return self.model_dump_json()
@@ -93,6 +120,7 @@ class DatasetDetail(BaseModel):
     row_count: int
     dataset_schema: list[ColumnMetadata] | None
     waveform_definitions: list[WaveformDefinition] | None = None
+    wfdb_metadata: WFDBDatasetMetadata | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

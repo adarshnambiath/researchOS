@@ -5,7 +5,7 @@ from typing import Any
 import pandas as pd
 
 from app.config import settings
-from app.readers.dataset_reader import DatasetReader, PandasDatasetReader
+from app.readers.dataset_reader import DatasetReader, TabularDatasetReader, WFDBDatasetReader
 from app.repositories.dataset_repository import DatasetRepository
 from app.schemas.dataset import (
     ColumnMetadata,
@@ -17,28 +17,29 @@ from app.schemas.dataset import (
     PlatformType,
 )
 
-_DEFAULT_READER = PandasDatasetReader()
+_READERS: dict[str, DatasetReader] = {
+    "tabular": TabularDatasetReader(),
+    "ecg_wfdb": WFDBDatasetReader(),
+}
 
 
 class DatasetService:
     def __init__(self, repo: DatasetRepository, reader: DatasetReader | None = None) -> None:
         self.repo = repo
-        self.reader = reader or _DEFAULT_READER
+        self.reader = reader or _READERS["tabular"]
 
     def register(self, data: DatasetCreate, source_path: str) -> DatasetDetail:
-        if not os.path.isfile(source_path):
-            raise FileNotFoundError(f"File not found: {source_path}")
-
-        df = pd.read_csv(source_path)
-        row_count = int(len(df))
-        metadata = self._infer_metadata(df)
+        reader = _READERS.get(data.modality, _READERS["tabular"])
+        row_count, metadata = reader.register(source_path)
         metadata.waveform_definitions = data.waveform_definitions or None
+
+        storage_format = "wfdb" if data.modality == "ecg_wfdb" else data.storage_format
 
         db_obj = self.repo.create(
             name=data.name,
             description=data.description,
             modality=data.modality,
-            storage_format=data.storage_format,
+            storage_format=storage_format,
             source_path=source_path,
             label_column=data.label_column,
             sample_id_column=data.sample_id_column,
@@ -102,17 +103,20 @@ class DatasetService:
         db_obj: Any,
         metadata: DatasetMetadata | None,
     ) -> DatasetDetail:
+        wfdb_meta = getattr(metadata, "wfdb", None)
         return DatasetDetail(
             id=db_obj.id,
             name=db_obj.name,
             description=db_obj.description,
             modality=db_obj.modality,
+            storage_format=getattr(db_obj, "storage_format", None),
             source_path=db_obj.source_path,
             label_column=db_obj.label_column,
             sample_id_column=db_obj.sample_id_column,
             row_count=db_obj.row_count,
             dataset_schema=metadata.columns if metadata else None,
             waveform_definitions=metadata.waveform_definitions if metadata else None,
+            wfdb_metadata=wfdb_meta,
             created_at=db_obj.created_at,
         )
 
