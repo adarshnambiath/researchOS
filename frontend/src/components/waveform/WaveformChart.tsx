@@ -13,6 +13,7 @@ interface WaveformChartProps {
   /** Standardized backend response object — the only dependency. */
   waveform: WaveformRecord;
   height?: number;
+  channelIndex?: number;
 }
 
 /**
@@ -22,12 +23,33 @@ interface WaveformChartProps {
  * Consumes a single WaveformRecord object.  Future additions
  * (annotations, timestamps, channels, lead names) are added to the
  * WaveformRecord model without changing this component's prop signature.
+ *
+ * When waveform.all_channels is provided, the chart uses
+ * all_channels[channelIndex] as the sample data, allowing the
+ * parent to switch between channels.
  */
 export function WaveformChart({
   waveform,
   height = 300,
+  channelIndex = 0,
 }: WaveformChartProps) {
-  const { samples, sampling_rate_hz: samplingRateHz, units } = waveform;
+  const { all_channels, sampling_rate_hz: samplingRateHz, channel_units } = waveform;
+
+  // Determine which samples to display
+  let samples: number[];
+  let unitLabel: string | null = null;
+
+  if (all_channels && all_channels.length > 0) {
+    samples = all_channels[channelIndex] ?? all_channels[0];
+  } else {
+    samples = waveform.samples;
+  }
+
+  if (channel_units && channelIndex < channel_units.length) {
+    unitLabel = channel_units[channelIndex] ?? waveform.units ?? null;
+  } else {
+    unitLabel = waveform.units ?? null;
+  }
 
   // Build data points — one per sample
   const data = samples.map((value, index) => ({
@@ -70,7 +92,7 @@ export function WaveformChart({
             tick={{ fontSize: 11, fill: "var(--color-muted)" }}
             stroke="var(--color-border)"
             label={{
-              value: units || "Amplitude",
+              value: unitLabel || "Amplitude",
               angle: -90,
               position: "insideLeft",
               style: { fontSize: 11, fill: "var(--color-muted)" },
@@ -84,7 +106,7 @@ export function WaveformChart({
               fontSize: 12,
               color: "var(--color-text-primary)",
             }}
-            formatter={(value: any) => [typeof value === 'number' ? value.toFixed(4) : String(value), units || "Value"]}
+            formatter={(value: any) => [typeof value === 'number' ? value.toFixed(4) : String(value), unitLabel || "Value"]}
             labelFormatter={(label) =>
               samplingRateHz ? `t = ${label.toFixed(3)} s` : `#${label}`
             }

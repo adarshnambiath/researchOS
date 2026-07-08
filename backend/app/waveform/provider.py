@@ -23,7 +23,16 @@ class WaveformProvider(ABC):
 
     @abstractmethod
     def get_record(
-        self, dataset_id: int, waveform_name: str, record_id: str
+        self,
+        dataset_id: int,
+        waveform_name: str,
+        record_id: str,
+        start_sample: int = 0,
+        num_samples: int | None = None,
     ) -> WaveformRecord | None:
-        """Return a specific record identified by record_id."""
+        """Return a specific record identified by record_id.
+
+        Supports windowing via start_sample and num_samples to avoid
+        transferring entire long recordings to the browser.
+        """
         ...

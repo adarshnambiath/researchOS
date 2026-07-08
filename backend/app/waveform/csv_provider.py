@@ -96,7 +96,8 @@ class CSVWaveformProvider(WaveformProvider):
         return record
 
     def get_record(
-        self, dataset_id: int, waveform_name: str, record_id: str
+        self, dataset_id: int, waveform_name: str, record_id: str,
+        start_sample: int = 0, num_samples: int | None = None,
     ) -> WaveformRecord | None:
         metadata = self._get_metadata(dataset_id)
         if not metadata or not metadata.waveform_definitions:

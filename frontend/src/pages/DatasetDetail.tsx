@@ -108,9 +108,51 @@ export function DatasetDetail() {
               )}
               <div className="sm:col-span-2">
                 <dt className="text-xs text-(--color-muted)">Records</dt>
-                <dd className="mt-1 text-sm text-(--color-text-primary)">
-                  {selected.wfdb_metadata.records.slice(0, 10).map((record) => record.record_name).join(", ")}
-                  {selected.wfdb_metadata.records.length > 10 ? " ..." : ""}
+                <dd className="mt-1">
+                  <div className="flex flex-wrap gap-x-3 gap-y-1">
+                    {selected.wfdb_metadata.records.slice(0, 5).map((rec) => (
+                      <a
+                        key={rec.record_name}
+                        href={`/datasets/${selected.id}/waveforms/${encodeURIComponent(rec.record_name)}`}
+                        className="text-sm font-medium text-(--color-primary) hover:underline"
+                      >
+                        {rec.record_name}
+                      </a>
+                    ))}
+                    {selected.wfdb_metadata.records.length > 5 && (
+                      <span className="text-sm text-(--color-muted)">
+                        +{selected.wfdb_metadata.records.length - 5} more
+                      </span>
+                    )}
+                  </div>
+                </dd>
+              </div>
+              <div className="sm:col-span-2">
+                <dt className="text-xs text-(--color-muted)">View Record</dt>
+                <dd className="mt-1">
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const input = (e.target as HTMLFormElement).elements.namedItem("recordId") as HTMLInputElement;
+                      if (input.value) {
+                        window.location.href = `/datasets/${selected.id}/waveforms/${encodeURIComponent(input.value)}`;
+                      }
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <input
+                      name="recordId"
+                      type="text"
+                      placeholder="Enter record ID (e.g. 100)"
+                      className="flex-1 rounded-md border border-(--color-border) px-3 py-1.5 text-sm"
+                    />
+                    <button
+                      type="submit"
+                      className="shrink-0 rounded-md bg-(--color-primary) px-3 py-1.5 text-sm font-medium text-white hover:bg-(--color-hover-button)"
+                    >
+                      View
+                    </button>
+                  </form>
                 </dd>
               </div>
             </>

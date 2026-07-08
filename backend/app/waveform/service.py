@@ -44,10 +44,14 @@ class WaveformService:
         return provider.get_preview(dataset_id, waveform_name)
 
     def get_record(
-        self, dataset_id: int, waveform_name: str, record_id: str
+        self, dataset_id: int, waveform_name: str, record_id: str,
+        start_sample: int = 0, num_samples: int | None = None,
     ) -> WaveformRecord | None:
         provider = self._get_provider(dataset_id)
         if not provider:
             return None
-        return provider.get_record(dataset_id, waveform_name, record_id)
+        return provider.get_record(
+            dataset_id, waveform_name, record_id,
+            start_sample=start_sample, num_samples=num_samples,
+        )
 

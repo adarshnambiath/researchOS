@@ -15,6 +15,9 @@ export interface WaveformRecord {
   sampling_rate_hz?: number;
   units?: string | null;
   samples: number[];
+  channel_names?: string[] | null;
+  channel_units?: string[] | null;
+  all_channels?: number[][] | null;
 }
 
 export const fetchWaveformDefinitions = (datasetId: number) =>

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -44,9 +44,14 @@ def get_waveform_record(
     dataset_id: int,
     waveform_name: str,
     record_id: str,
+    start_sample: int = Query(0, ge=0),
+    num_samples: int | None = Query(None, ge=1),
     service: WaveformService = Depends(get_service),
 ):
-    record = service.get_record(dataset_id, waveform_name, record_id)
+    record = service.get_record(
+        dataset_id, waveform_name, record_id,
+        start_sample=start_sample, num_samples=num_samples,
+    )
     if not record:
         raise HTTPException(status_code=404, detail="Record not found or dataset unreadable")
     return record
