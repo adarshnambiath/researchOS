@@ -16,10 +16,20 @@ export function DatasetDetail() {
   useEffect(() => {
     if (id) {
       loadOne(Number(id));
-      loadPreview(Number(id));
+      // WFDB datasets do not have a tabular preview; the preview
+      // request is fired from a separate effect once the dataset
+      // metadata is loaded.
     }
     return () => clearSelected();
   }, [id, loadOne, loadPreview, clearSelected]);
+
+  // Only request a tabular preview for non-WFDB datasets
+  useEffect(() => {
+    if (selected && selected.modality !== "ecg_wfdb" && id) {
+      loadPreview(Number(id));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected?.modality, selected?.id, loadPreview]);
 
   if (loading) return <div className="p-6 text-sm text-(--color-muted)">Loading…</div>;
   if (error) return <div className="p-6 text-sm text-red-600">{error}</div>;
@@ -175,8 +185,9 @@ export function DatasetDetail() {
         </dl>
       </section>
 
-      <section className="rounded-lg border border-(--color-border) p-6">
-        <h3 className="text-sm font-medium text-(--color-text-primary)">Schema</h3>
+      {selected.modality !== "ecg_wfdb" && (
+        <section className="rounded-lg border border-(--color-border) p-6">
+          <h3 className="text-sm font-medium text-(--color-text-primary)">Schema</h3>
         <div className="mt-4 grid grid-cols-1 gap-2">
           {selected.waveform_definitions && selected.waveform_definitions.length > 0 ? (
             <>
@@ -250,6 +261,7 @@ export function DatasetDetail() {
           )}
         </div>
       </section>
+      )}
 
       {editOpen && (
         <Modal title="Edit Dataset" onClose={() => setEditOpen(false)}>
