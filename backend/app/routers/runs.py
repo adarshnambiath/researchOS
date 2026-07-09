@@ -97,3 +97,10 @@ def get_experiment_run(
     if not run or run.experiment_id != experiment_id:
         raise HTTPException(status_code=404, detail="Run not found")
     return run
+
+# [Docs placeholder] Run endpoints:
+# POST / — creates run, auto-creates workspace directory
+# GET /?experiment_id= — filtered list by experiment
+# GET /{id} — returns RunDetail with output directory path
+# PUT /{id} — updates model_name, notes, hyperparameters
+# DELETE /{id} — deletes run and clears workspace outputs

@@ -1,3 +1,15 @@
+"""
+Research OS — FastAPI application bootstrap.
+
+This module wires together the backend application: routers, CORS,
+and the SQLAlchemy lifecycle.  It does not contain domain logic;
+domain logic lives in the service layer.
+
+Extension point: routers are registered here.  New routes are never
+added directly to main.py; they belong in app/routers/ and are
+included via app.include_router().
+"""
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -19,6 +31,13 @@ from app.routers import (
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """
+    Application lifespan handler.
+
+    Creates database tables on startup.  SQLite is the default for
+    MVP; swapping to PostgreSQL only requires changing the database
+    URL in config.py — this function remains unchanged.
+    """
     Base.metadata.create_all(bind=engine)
     yield
 
@@ -47,3 +66,9 @@ app.include_router(investigation_router)
 app.include_router(runs_nested_router)
 app.include_router(sdk_visualization_router)
 app.include_router(waveforms_router)
+
+# [Docs placeholder] Architecture overview:
+# - CORS middleware configured for Vite dev server
+# - Routers mounted in dependency order
+# - SQLAlchemy tables created on startup
+# - No auth in MVP; add middleware before routers if needed

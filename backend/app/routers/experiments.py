@@ -67,3 +67,10 @@ def delete_experiment(
     if not success:
         raise HTTPException(status_code=404, detail="Experiment not found")
     return None
+
+# [Docs placeholder] Experiment endpoints:
+# POST/ — creates experiment tied to a dataset
+# GET /?dataset_id= — filtered list by dataset
+# GET /{id} — returns ExperimentDetail with run count
+# PUT /{id} — updates name, description, objective
+# DELETE /{id} — cascades to runs and outputs

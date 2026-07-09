@@ -84,3 +84,10 @@ def delete_dataset(dataset_id: int, service: DatasetService = Depends(get_servic
     if not success:
         raise HTTPException(status_code=404, detail="Dataset not found")
     return None
+
+# [Docs placeholder] Dataset endpoints:
+# POST /register — creates dataset with reader-inferred metadata
+# GET /{id} — returns DatasetDetail with schema and waveform metadata
+# PUT /{id} — updates name, description, label_column, sample_id_column
+# DELETE /{id} — cascades to child experiments, runs, outputs
+# GET /{id}/preview — returns first N rows from source CSV

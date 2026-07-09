@@ -1,3 +1,10 @@
+
+# [Docs placeholder] RunService manages run lifecycle:
+# - Creates workspace directory on run creation
+# - Validates experiment ownership
+# - Auto-detects outputs in workspace directory
+# - Never uploads or copies files — only records paths
+
 import json
 import os
 from pathlib import Path

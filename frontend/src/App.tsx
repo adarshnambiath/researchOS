@@ -33,3 +33,10 @@ export default function App() {
     </Routes>
   );
 }
+
+// [Docs placeholder] Route hierarchy:
+// /datasets → Datasets page
+// /datasets/:id → DatasetDetail with Experiments tab and WaveformViewer
+// /experiments/:id → ExperimentDetail with Runs tab and Investigation tab
+// /runs/:id → RunDetail with WaveformViewer and RunEvaluation
+// All routes render inside Layout (sidebar + content)

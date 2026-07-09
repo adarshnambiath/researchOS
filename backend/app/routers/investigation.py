@@ -51,3 +51,7 @@ def compute_insights(
     if not insights:
         raise HTTPException(status_code=404, detail="Evaluation file not found")
     return insights
+
+# [Docs placeholder] Investigation endpoints:
+# GET /query — queries evaluation.parquet with QueryFilters
+# GET /row/{index} — joins evaluation row with dataset row via sample_id

@@ -1,3 +1,10 @@
+
+# [Docs placeholder] InvestigationService joins evaluation with dataset:
+# - Reads evaluation.parquet via EvaluationEngine
+# - Loads parent experiment and dataset from database
+# - Reads source CSV and matches by sample_id_column
+# - Returns RowDetail(evaluation_row, dataset_row)
+
 import json
 import os
 
