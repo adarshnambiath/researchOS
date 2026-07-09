@@ -173,7 +173,10 @@ Rules:
 - If class probabilities are available (for example from predict_proba or softmax outputs), pass them using the probabilities argument.
 - If probabilities are not available, omit the probabilities argument.
 - If useful metadata already exists (for example fold number, dataset version, split name, model variant, or other experiment metadata), pass it through the optional metadata argument.
-- Do not fabricate probabilities or metadata.`;
+- Do not fabricate probabilities or metadata.
+- If optional information such as probabilities, metadata, artifacts or provenance already exists in the user's code, connect it to the SDK.
+- Do not invent missing information.
+- Do not modify preprocessing solely to satisfy the SDK.`;
 
   const wfdbLlmGuidance = `
 - This dataset uses WFDB ECG records. If the preprocessing pipeline already computes provenance information such as record_name, window_start, and window_end for each evaluation sample, include them using the optional columns argument:
@@ -378,26 +381,106 @@ Do not explain your changes.`;
 
               <CodeBlock code={codeSnippet} language="python" showCopy />
 
+              {/* Research OS Capabilities */}
+              <div className="mt-6 space-y-3">
+                <h3 className="text-sm font-medium text-(--color-text-primary)">Research OS Capabilities</h3>
+                <div className="overflow-x-auto rounded-lg border border-(--color-border)">
+                  <table className="min-w-full text-sm">
+                    <thead className="bg-(--color-card)">
+                      <tr>
+                        <th className="px-4 py-2 font-medium text-(--color-text-secondary) text-left">Information Published</th>
+                        <th className="px-4 py-2 font-medium text-(--color-text-secondary) text-left">Research OS Capability</th>
+                        <th className="px-4 py-2 font-medium text-(--color-text-secondary) text-left">Required</th>
+                        <th className="px-4 py-2 font-medium text-(--color-text-secondary) text-left">Notes</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-(--color-border)">
+                      <tr>
+                        <td className="px-4 py-3"><code className="rounded bg-(--color-card) px-1 py-0.5 text-xs font-mono">sample_ids</code></td>
+                        <td className="px-4 py-3">Per-sample investigation</td>
+                        <td className="px-4 py-3"><span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">Required</span></td>
+                        <td className="px-4 py-3 text-(--color-text-secondary)">Every evaluated sample should have a unique identifier.</td>
+                      </tr>
+                      <tr>
+                        <td className="px-4 py-3"><code className="rounded bg-(--color-card) px-1 py-0.5 text-xs font-mono">ground_truth</code> + <code className="rounded bg-(--color-card) px-1 py-0.5 text-xs font-mono">predictions</code></td>
+                        <td className="px-4 py-3">Metrics, confusion matrix, filtering</td>
+                        <td className="px-4 py-3"><span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">Required</span></td>
+                        <td className="px-4 py-3 text-(--color-text-secondary)"></td>
+                      </tr>
+                      <tr>
+                        <td className="px-4 py-3"><code className="rounded bg-(--color-card) px-1 py-0.5 text-xs font-mono">probabilities</code></td>
+                        <td className="px-4 py-3">Confidence scores and confidence-based filtering</td>
+                        <td className="px-4 py-3"><span className="inline-flex items-center rounded-full bg-(--color-hover) px-2 py-0.5 text-xs font-medium text-(--color-muted)">Optional</span></td>
+                        <td className="px-4 py-3 text-(--color-text-secondary)">Only publish if already available.</td>
+                      </tr>
+                      <tr>
+                        <td className="px-4 py-3"><code className="rounded bg-(--color-card) px-1 py-0.5 text-xs font-mono">metadata</code></td>
+                        <td className="px-4 py-3">Experiment grouping and contextual information</td>
+                        <td className="px-4 py-3"><span className="inline-flex items-center rounded-full bg-(--color-hover) px-2 py-0.5 text-xs font-medium text-(--color-muted)">Optional</span></td>
+                        <td className="px-4 py-3 text-(--color-text-secondary)">Examples include dataset version, fold number, split, model variant.</td>
+                      </tr>
+                      <tr>
+                        <td className="px-4 py-3"><code className="rounded bg-(--color-card) px-1 py-0.5 text-xs font-mono">artifacts</code></td>
+                        <td className="px-4 py-3">Artifact browser</td>
+                        <td className="px-4 py-3"><span className="inline-flex items-center rounded-full bg-(--color-hover) px-2 py-0.5 text-xs font-medium text-(--color-muted)">Optional</span></td>
+                        <td className="px-4 py-3 text-(--color-text-secondary)">Only register files that already exist.</td>
+                      </tr>
+                      <tr>
+                        <td className="px-4 py-3"><code className="rounded bg-(--color-card) px-1 py-0.5 text-xs font-mono">columns</code> (additional)</td>
+                        <td className="px-4 py-3">Advanced investigation features</td>
+                        <td className="px-4 py-3"><span className="inline-flex items-center rounded-full bg-(--color-hover) px-2 py-0.5 text-xs font-medium text-(--color-muted)">Optional</span></td>
+                        <td className="px-4 py-3 text-(--color-text-secondary)">Arbitrary per-sample columns published into <code className="rounded bg-(--color-card) px-1 py-0.5 text-xs font-mono">evaluation.parquet</code>.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
               {isWfdb && (
-                <div className="rounded-md border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900 space-y-2">
-                  <p className="font-medium">Waveform Provenance (WFDB Dataset)</p>
-                  <p>
-                    The optional <code className="rounded bg-blue-100 px-1 py-0.5 text-xs font-mono">columns</code> argument in{" "}
-                    <code className="rounded bg-blue-100 px-1 py-0.5 text-xs font-mono">publish_evaluation()</code> accepts arbitrary
-                    per-sample lists. Every list must have the same length as <code className="rounded bg-blue-100 px-1 py-0.5 text-xs font-mono">sample_ids</code>.
-                    These values become additional columns in <code className="rounded bg-blue-100 px-1 py-0.5 text-xs font-mono">evaluation.parquet</code>.
-                  </p>
-                  <p>
-                    During beat extraction, the preprocessing pipeline already knows <code className="rounded bg-blue-100 px-1 py-0.5 text-xs font-mono">record_name</code>,{" "}
-                    <code className="rounded bg-blue-100 px-1 py-0.5 text-xs font-mono">window_start</code>, and <code className="rounded bg-blue-100 px-1 py-0.5 text-xs font-mono">window_end</code>.
-                    Publishing these values allows the Research OS to reconstruct the original ECG segment
-                    corresponding to every evaluated prediction for investigation.
-                  </p>
+                <div className="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900 space-y-3">
+                  <p className="font-medium">Waveform Navigation</p>
+                  <p>To enable waveform visualization directly from evaluation results, publish the following provenance columns:</p>
+                  <CodeBlock code={`columns={\n    "record_name": record_names,\n    "window_start": window_starts,\n    "window_end": window_ends,\n}`} language="python" showCopy />
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <div>
+                      <p className="font-medium"><code className="rounded bg-blue-100 px-1 py-0.5 text-xs font-mono">record_name</code></p>
+                      <p className="text-xs text-blue-700">The original WFDB record (e.g. 100, 101, 102)</p>
+                    </div>
+                    <div>
+                      <p className="font-medium"><code className="rounded bg-blue-100 px-1 py-0.5 text-xs font-mono">window_start</code></p>
+                      <p className="text-xs text-blue-700">The first sample index of the extracted beat.</p>
+                    </div>
+                    <div>
+                      <p className="font-medium"><code className="rounded bg-blue-100 px-1 py-0.5 text-xs font-mono">window_end</code></p>
+                      <p className="text-xs text-blue-700">The last sample index of the extracted beat.</p>
+                    </div>
+                  </div>
                   <p className="text-xs text-blue-700">
-                    Do not generate fake provenance. Only publish values that already exist in the preprocessing pipeline.
+                    These values are normally already available during beat extraction.
+                    The SDK stores them without interpretation.
+                    The Research OS later uses them to reconstruct the original ECG segment when investigating predictions.
                   </p>
                 </div>
               )}
+
+              {/* Missing Information */}
+              <div className="mt-6 rounded-lg border border-(--color-border) p-4 text-sm space-y-3">
+                <p className="font-medium text-(--color-text-primary)">What happens if information is not published?</p>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <div className="rounded-md border border-(--color-border) p-3">
+                    <p className="font-medium text-(--color-text-primary)">Missing probabilities</p>
+                    <p className="mt-1 text-xs text-(--color-text-secondary)">Metrics still work. Confidence visualization is unavailable.</p>
+                  </div>
+                  <div className="rounded-md border border-(--color-border) p-3">
+                    <p className="font-medium text-(--color-text-primary)">Missing artifacts</p>
+                    <p className="mt-1 text-xs text-(--color-text-secondary)">Experiment evaluation works normally. The artifact browser will simply be empty.</p>
+                  </div>
+                  <div className="rounded-md border border-(--color-border) p-3">
+                    <p className="font-medium text-(--color-text-primary)">Missing waveform provenance</p>
+                    <p className="mt-1 text-xs text-(--color-text-secondary)">Metrics, confusion matrix, filtering, and the evaluation table all continue to work normally. Only waveform navigation is unavailable because the platform cannot reconstruct the original ECG segment without provenance. The SDK does not infer or fabricate provenance.</p>
+                  </div>
+                </div>
+              </div>
 
               <div className="text-sm text-(--color-text-secondary)">
                 <p className="font-medium text-(--color-text-primary) mb-1">The SDK will create:</p>
