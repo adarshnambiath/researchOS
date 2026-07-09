@@ -1,0 +1,10 @@
+PLATFORM DESCRIPTION:
+dataset: accepts uploads of csv, and wfdb waveform data, in a folder with .atr, .hea and .dat files per record. infers some metadata from this
+after upload you can view waveforms per record, only 10s, almost like a preview
+when uploading ecg you can designate contiguous columns as a waveform and it stores, identifies and queries later as such
+
+experiments: these define a problem statement, each experiment is connected to a single dataset
+
+every experiment can  have multiple runs: each run just designates a folder in the evaluation part of the platform, i.e. every run has its on evaluation. In that run it gives direction on llm or manual integration of the sdk. the sdk takes this data and dumps it into the designated folder. 
+
+evaluation: if the  platform detects the appropriate files in the eval folder of that run you can view an evaluation. a confusion matrix appears, clicking on each cell  displays those records, waveform records from wfdb are also clickable. Suppose the training code segments the original data into stuff like beats, as long as the code integrates well and a start and end window is provided the platform takes care, can select and filter records and view waveforms safely, so every run can have a different view of the dataset
