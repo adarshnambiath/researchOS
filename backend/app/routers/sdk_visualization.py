@@ -6,13 +6,20 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.repositories.dataset_repository import DatasetRepository
 from app.repositories.run_repository import RunRepository
+from app.waveform.models import WaveformRecord
+from app.waveform.service import WaveformService
 
 router = APIRouter(prefix="/api/runs/{run_id}", tags=["sdk-visualization"])
 
 
 def get_run_repo(db: Session = Depends(get_db)) -> RunRepository:
     return RunRepository(db)
+
+
+def get_dataset_repo(db: Session = Depends(get_db)) -> DatasetRepository:
+    return DatasetRepository(db)
 
 
 @router.get("/evaluation")
@@ -175,3 +182,56 @@ def get_artifacts(
                 entry["available"] = False
 
     return data
+
+
+@router.get("/evaluation/waveform", response_model=WaveformRecord)
+def get_evaluation_waveform(
+    run_id: int,
+    record_name: str = Query(..., min_length=1, description="Record name from provenance (record_name column)"),
+    window_start: int = Query(..., ge=0, description="Start sample index (window_start column)"),
+    window_end: int = Query(..., ge=1, description="End sample index (window_end column, exclusive)"),
+    run_repo: RunRepository = Depends(get_run_repo),
+    ds_repo: DatasetRepository = Depends(get_dataset_repo),
+):
+    """Return a waveform slice for an evaluation row.
+
+    Reads the run to resolve its experiment → dataset, then
+    delegates to the WaveformService/WaveformProvider chain to
+    load and slice the recording.  Only samples in
+    [window_start, window_end) are returned — never the full
+    recording.
+    """
+    run = run_repo.get_by_id(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="Run not found")
+
+    # Navigate run → experiment → dataset
+    experiment = run.experiment
+    if not experiment:
+        raise HTTPException(status_code=404, detail="Run has no associated experiment")
+
+    dataset_id = experiment.dataset_id
+
+    # Build the waveform service
+    service = WaveformService(ds_repo)
+
+    # The record_name from provenance is used as both the waveform
+    # name and the record_id.  For WFDB datasets each record IS a
+    # waveform; for CSV providers the waveform name maps to a
+    # WaveformDefinition.
+    num_samples = max(window_end - window_start, 1)
+
+    record = service.get_record(
+        dataset_id=dataset_id,
+        waveform_name=record_name,
+        record_id=record_name,
+        start_sample=window_start,
+        num_samples=num_samples,
+    )
+    if not record:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Waveform record '{record_name}' not found or dataset unreadable",
+        )
+
+    return record

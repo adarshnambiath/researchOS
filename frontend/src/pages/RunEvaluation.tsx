@@ -376,33 +376,64 @@ export function RunEvaluation() {
                       </span>
                     </th>
                   ))}
+                  {hasWaveforms && columns.some((c) => ["record_name", "window_start", "window_end"].includes(c.toLowerCase())) && (
+                    <th className="px-4 py-2 font-medium text-(--color-text-secondary) whitespace-nowrap">
+                      Waveform
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-(--color-border)">
-                {rows.map((row, idx) => (
-                  <tr key={idx} className="hover:bg-(--color-card)">
-                    {columnConfigs.map((col) => {
-                      const val = row[col.key];
-                      const display = formatCell(val);
-                      const isBool = typeof val === "boolean";
-                      const canViewWaveform = hasWaveforms && col.key.toLowerCase() === "sample_id" && val != null && String(val).trim() !== "";
-                      return (
-                        <td key={col.key}
-                          className={`px-4 py-2 ${col.numeric ? "text-right font-mono tabular-nums" : ""} ${isBool ? "" : "text-(--color-text-primary)"}`}>
-                          {isBool ? (
-                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${val ? "bg-green-100 text-green-700" : "bg-(--color-hover) text-(--color-muted)"}`}>
-                              {val ? "True" : "False"}
-                            </span>
-                          ) : canViewWaveform ? (
-                            <Link to={`/datasets/${datasetId}/waveforms/${firstWaveformName ? encodeURIComponent(firstWaveformName) : "preview"}?recordId=${encodeURIComponent(String(val))}&from=evaluation&runId=${encodeURIComponent(String(runId || ""))}&experimentId=${encodeURIComponent(String(experimentId || ""))}`} className="text-(--color-primary) hover:underline">
-                              {display}
-                            </Link>
-                          ) : display}
+                {rows.map((row, idx) => {
+                  const hasProvenance = hasWaveforms
+                    && row.record_name && row.window_start != null && row.window_end != null;
+
+                  const sampleIdHref = (() => {
+                    const sid = row.sample_id;
+                    if (sid == null || String(sid).trim() === "") return null;
+                    // Provenance-based evaluation waveform path
+                    if (row.record_name && row.window_start != null && row.window_end != null) {
+                      return `/experiments/${encodeURIComponent(String(experimentId || ""))}/runs/${encodeURIComponent(String(runId || effectiveId))}/evaluation/waveform?from=evaluation&recordName=${encodeURIComponent(String(row.record_name))}&windowStart=${encodeURIComponent(String(row.window_start))}&windowEnd=${encodeURIComponent(String(row.window_end))}&runId=${encodeURIComponent(String(runId || effectiveId))}&experimentId=${encodeURIComponent(String(experimentId || ""))}`;
+                    }
+                    // Fallback: dataset waveform viewer
+                    return `/datasets/${datasetId}/waveforms/${firstWaveformName ? encodeURIComponent(firstWaveformName) : "preview"}?recordId=${encodeURIComponent(String(sid))}&from=evaluation&runId=${encodeURIComponent(String(runId || ""))}&experimentId=${encodeURIComponent(String(experimentId || ""))}`;
+                  })();
+
+                  return (
+                    <tr key={idx} className="hover:bg-(--color-card)">
+                      {columnConfigs.map((col) => {
+                        const val = row[col.key];
+                        const display = formatCell(val);
+                        const isBool = typeof val === "boolean";
+                        const isSampleIdClickable = col.key.toLowerCase() === "sample_id" && sampleIdHref !== null;
+                        return (
+                          <td key={col.key}
+                            className={`px-4 py-2 ${col.numeric ? "text-right font-mono tabular-nums" : ""} ${isBool ? "" : "text-(--color-text-primary)"}`}>
+                            {isBool ? (
+                              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${val ? "bg-green-100 text-green-700" : "bg-(--color-hover) text-(--color-muted)"}`}>
+                                {val ? "True" : "False"}
+                              </span>
+                            ) : isSampleIdClickable ? (
+                              <Link to={sampleIdHref} className="text-(--color-primary) hover:underline">
+                                {display}
+                              </Link>
+                            ) : display}
+                          </td>
+                        );
+                      })}
+                      {hasProvenance && (
+                        <td className="px-4 py-2 text-right">
+                          <Link
+                            to={`/experiments/${encodeURIComponent(String(experimentId || ""))}/runs/${encodeURIComponent(String(runId || effectiveId))}/evaluation/waveform?from=evaluation&recordName=${encodeURIComponent(String(row.record_name))}&windowStart=${encodeURIComponent(String(row.window_start))}&windowEnd=${encodeURIComponent(String(row.window_end))}&runId=${encodeURIComponent(String(runId || effectiveId))}&experimentId=${encodeURIComponent(String(experimentId || ""))}`}
+                            className="inline-flex items-center rounded-md border border-(--color-border) px-2 py-1 text-xs font-medium text-(--color-text-secondary) hover:text-(--color-text-primary) hover:bg-(--color-card)"
+                          >
+                            View Waveform
+                          </Link>
                         </td>
-                      );
-                    })}
-                  </tr>
-                ))}
+                      )}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

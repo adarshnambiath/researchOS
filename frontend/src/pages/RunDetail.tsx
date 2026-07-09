@@ -6,6 +6,8 @@ import { CodeBlock } from "../components/CodeBlock";
 import { FormField } from "../components/FormField";
 import { Modal } from "../components/Modal";
 import { formatDate, formatBytes } from "../lib/format";
+import { fetchExperiment } from "../api/experiments";
+import { fetchDataset } from "../api/datasets";
 
 const SDK_PATH = "/Users/adarsh/Documents/internship_2026/evalsdk";
 
@@ -22,6 +24,7 @@ export function RunDetail() {
 
   const [editOpen, setEditOpen] = useState(false);
   const [sdkTab, setSdkTab] = useState<"manual" | "prompt">("manual");
+  const [datasetModality, setDatasetModality] = useState<string | null>(null);
   const [form, setForm] = useState({
     model_name: "",
     notes: "",
@@ -44,12 +47,23 @@ export function RunDetail() {
     return () => clearSelected();
   }, [effectiveId, loadOne, loadOutputs, clearSelected]);
 
+  // Fetch dataset modality for conditional SDK guidance
+  useEffect(() => {
+    if (!selected?.experiment_id) return;
+    fetchExperiment(selected.experiment_id)
+      .then((exp) => fetchDataset(exp.dataset_id))
+      .then((ds) => setDatasetModality(ds.modality))
+      .catch(() => setDatasetModality(null));
+  }, [selected?.experiment_id]);
+
   if (loading) return <div className="p-6 text-sm text-(--color-muted)">Loading…</div>;
   if (error) return <div className="p-6 text-sm text-red-600">{error}</div>;
   if (!selected) return <div className="p-6 text-sm text-(--color-muted)">Run not found.</div>;
 
+  const isWfdb = datasetModality === "ecg_wfdb";
+
   // ── SDK code snippet (Tab 1) ──────────────────────────────────────
-  const codeSnippet = `import sys
+  const baseCodeSnippet = `import sys
 
 sys.path.insert(
     0,
@@ -68,8 +82,15 @@ session.publish_evaluation(
     sample_ids=sample_ids,
     ground_truth=y_true,
     predictions=y_pred,
-    probabilities=probabilities,
-)
+    probabilities=probabilities,`;
+
+  const wfdbColumnsSnippet = `    columns={
+        "record_name": record_names,
+        "window_start": window_starts,
+        "window_end": window_ends,
+    },`;
+
+  const codeSuffix = `)
 
 session.publish_artifact(
     type="MODEL_CHECKPOINT",
@@ -79,8 +100,15 @@ session.publish_artifact(
 
 session.finish()`;
 
+  const codeSnippet = isWfdb
+    ? `${baseCodeSnippet}
+${wfdbColumnsSnippet}
+${codeSuffix}`
+    : `${baseCodeSnippet}
+${codeSuffix}`;
+
   // ── LLM prompt (Tab 2) ────────────────────────────────────────────
-const llmPrompt = `You are integrating a standalone experiment evaluation SDK into an existing Python machine learning training script.
+  const baseLlmPrompt = `You are integrating a standalone experiment evaluation SDK into an existing Python machine learning training script.
 
 The SDK does NOT train models, perform inference, preprocess data, or replace any part of the ML pipeline.
 
@@ -145,8 +173,23 @@ Rules:
 - If class probabilities are available (for example from predict_proba or softmax outputs), pass them using the probabilities argument.
 - If probabilities are not available, omit the probabilities argument.
 - If useful metadata already exists (for example fold number, dataset version, split name, model variant, or other experiment metadata), pass it through the optional metadata argument.
-- Do not fabricate probabilities or metadata.
+- Do not fabricate probabilities or metadata.`;
 
+  const wfdbLlmGuidance = `
+- This dataset uses WFDB ECG records. If the preprocessing pipeline already computes provenance information such as record_name, window_start, and window_end for each evaluation sample, include them using the optional columns argument:
+
+    columns={
+        "record_name": record_names,
+        "window_start": window_starts,
+        "window_end": window_ends,
+    }
+
+- Every list in columns must have the same length as sample_ids.
+- Do not invent provenance. Only publish values that already exist in the preprocessing pipeline.
+- Do not modify preprocessing logic solely to satisfy the SDK.
+- If these values are not available in the pipeline, omit columns entirely.`;
+
+  const baseLlmSuffix = `
 If the training script already produces useful artifacts, register them using session.publish_artifact().
 
 Supported artifact types are:
@@ -193,6 +236,10 @@ Do not return a diff.
 Do not omit unchanged code.
 
 Do not explain your changes.`;
+
+  const llmPrompt = isWfdb
+    ? `${baseLlmPrompt}${wfdbLlmGuidance}${baseLlmSuffix}`
+    : `${baseLlmPrompt}${baseLlmSuffix}`;
 
   const openEdit = () => {
     setForm({
@@ -330,6 +377,27 @@ Do not explain your changes.`;
               </div>
 
               <CodeBlock code={codeSnippet} language="python" showCopy />
+
+              {isWfdb && (
+                <div className="rounded-md border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900 space-y-2">
+                  <p className="font-medium">Waveform Provenance (WFDB Dataset)</p>
+                  <p>
+                    The optional <code className="rounded bg-blue-100 px-1 py-0.5 text-xs font-mono">columns</code> argument in{" "}
+                    <code className="rounded bg-blue-100 px-1 py-0.5 text-xs font-mono">publish_evaluation()</code> accepts arbitrary
+                    per-sample lists. Every list must have the same length as <code className="rounded bg-blue-100 px-1 py-0.5 text-xs font-mono">sample_ids</code>.
+                    These values become additional columns in <code className="rounded bg-blue-100 px-1 py-0.5 text-xs font-mono">evaluation.parquet</code>.
+                  </p>
+                  <p>
+                    During beat extraction, the preprocessing pipeline already knows <code className="rounded bg-blue-100 px-1 py-0.5 text-xs font-mono">record_name</code>,{" "}
+                    <code className="rounded bg-blue-100 px-1 py-0.5 text-xs font-mono">window_start</code>, and <code className="rounded bg-blue-100 px-1 py-0.5 text-xs font-mono">window_end</code>.
+                    Publishing these values allows the Research OS to reconstruct the original ECG segment
+                    corresponding to every evaluated prediction for investigation.
+                  </p>
+                  <p className="text-xs text-blue-700">
+                    Do not generate fake provenance. Only publish values that already exist in the preprocessing pipeline.
+                  </p>
+                </div>
+              )}
 
               <div className="text-sm text-(--color-text-secondary)">
                 <p className="font-medium text-(--color-text-primary) mb-1">The SDK will create:</p>

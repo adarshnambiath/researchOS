@@ -3,28 +3,54 @@ import { useParams, Link, useSearchParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 
 import { WaveformViewer } from "../components/waveform/WaveformViewer";
-import { fetchWaveformPreview, fetchWaveformRecord } from "../api/waveforms";
+import { fetchWaveformPreview, fetchWaveformRecord, fetchEvaluationWaveform } from "../api/waveforms";
 import type { WaveformRecord } from "../api/waveforms";
 
 export function WaveformViewerPage() {
-  const { datasetId, waveformName } = useParams<{
+  const { datasetId, waveformName, experimentId, runId } = useParams<{
     datasetId: string;
     waveformName: string;
+    experimentId: string;
+    runId: string;
   }>();
   const [searchParams] = useSearchParams();
   const recordIdParam = searchParams.get("recordId");
   const fromParam = searchParams.get("from");
   const fromRunId = searchParams.get("runId");
   const fromExperimentId = searchParams.get("experimentId");
+  const evalRecordName = searchParams.get("recordName");
+  const evalWindowStart = searchParams.get("windowStart");
+  const evalWindowEnd = searchParams.get("windowEnd");
 
-  const navigateToRun = (runId = fromRunId) => {
-    if (!runId) return undefined;
-    if (fromExperimentId) return `/experiments/${fromExperimentId}/runs/${runId}`;
-    return `/runs/${runId}`;
+  // Determine if this is an evaluation-waveform view
+  const isEvaluationWaveform = fromParam === "evaluation"
+    && evalRecordName && evalWindowStart && evalWindowEnd
+    && (experimentId || fromExperimentId) && (runId || fromRunId);
+
+  const effectiveExperimentId = experimentId || fromExperimentId;
+  const effectiveRunId = runId || fromRunId;
+
+  const navigateToRun = (rId = effectiveRunId) => {
+    if (!rId) return undefined;
+    if (effectiveExperimentId) return `/experiments/${effectiveExperimentId}/runs/${rId}`;
+    return `/runs/${rId}`;
   };
 
-  const backTarget = fromParam === "evaluation" ? navigateToRun() : `/datasets/${datasetId}`;
-  const backLabel = fromParam === "evaluation" ? "Back to Run Evaluation" : "Back to Dataset";
+  const evaluationBackTarget = navigateToRun()
+    ? `${navigateToRun()}/evaluation`
+    : undefined;
+
+  const backTarget = isEvaluationWaveform
+    ? evaluationBackTarget
+    : fromParam === "evaluation"
+      ? navigateToRun()
+      : `/datasets/${datasetId}`;
+
+  const backLabel = isEvaluationWaveform
+    ? "Back to Evaluation"
+    : fromParam === "evaluation"
+      ? "Back to Run Evaluation"
+      : "Back to Dataset";
 
   const [record, setRecord] = useState<WaveformRecord | null>(null);
   const [loading, setLoading] = useState(true);
@@ -54,15 +80,37 @@ export function WaveformViewerPage() {
   };
 
   useEffect(() => {
-    if (!datasetId || !waveformName) return;
+    if (!datasetId && !isEvaluationWaveform) return;
 
+    // Evaluation-waveform mode: use the run-level endpoint
+    if (isEvaluationWaveform) {
+      const rId = Number(effectiveRunId);
+      const rName = evalRecordName!;
+      const wStart = Number(evalWindowStart);
+      const wEnd = Number(evalWindowEnd);
+      setLoading(true);
+      setError(null);
+      setActiveRecordId(rName);
+      fetchEvaluationWaveform(rId, rName, wStart, wEnd)
+        .then((data) => {
+          setRecord(data);
+          setLoading(false);
+        })
+        .catch((e) => {
+          setError((e as Error).message);
+          setLoading(false);
+        });
+      return;
+    }
+
+    // Normal dataset-waveform mode
     if (recordIdParam) {
       setActiveRecordId(recordIdParam);
       loadRecord(recordIdParam, startTime, windowDuration);
     } else {
       setLoading(true);
       setError(null);
-      fetchWaveformPreview(Number(datasetId), waveformName)
+      fetchWaveformPreview(Number(datasetId), waveformName!)
         .then((data) => {
           setRecord(data);
           setActiveRecordId(null);
@@ -74,7 +122,7 @@ export function WaveformViewerPage() {
         });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [datasetId, waveformName, recordIdParam]);
+  }, [datasetId, waveformName, recordIdParam, isEvaluationWaveform]);
 
   const totalSec = record?.total_samples != null && sr ? record.total_samples / sr : null;
 
@@ -90,14 +138,18 @@ export function WaveformViewerPage() {
 
       <div>
         <h1 className="text-2xl font-semibold text-(--color-text-primary)">
-          {waveformName}
+          {isEvaluationWaveform ? `${evalRecordName} (Evaluation Window)` : waveformName}
         </h1>
         <p className="mt-1 text-sm text-(--color-text-secondary)">
-          {recordIdParam ? `Record ${recordIdParam}` : "Waveform preview — first record from dataset"}
+          {isEvaluationWaveform
+            ? `Record ${evalRecordName} · samples ${evalWindowStart}–${evalWindowEnd}`
+            : recordIdParam
+              ? `Record ${recordIdParam}`
+              : "Waveform preview — first record from dataset"}
         </p>
       </div>
 
-      {activeRecordId && (
+      {activeRecordId && !isEvaluationWaveform && (
         <section className="rounded-lg border border-(--color-border) p-4">
           <div className="flex flex-wrap items-center gap-3 text-sm">
             <span className="text-xs font-medium text-(--color-muted)">Window</span>

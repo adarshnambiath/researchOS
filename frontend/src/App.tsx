@@ -23,10 +23,12 @@ export default function App() {
         <Route path="/experiments/:id" element={<ExperimentDetail />} />
         <Route path="/experiments/:experimentId/runs/:runId" element={<RunDetail />} />
         <Route path="/experiments/:experimentId/runs/:runId/evaluation" element={<RunEvaluation />} />
+        <Route path="/experiments/:experimentId/runs/:runId/evaluation/waveform" element={<WaveformViewerPage />} />
         <Route path="/experiments/:experimentId/runs/:runId/investigate" element={<Investigation />} />
         <Route path="/runs" element={<Runs />} />
         <Route path="/runs/:id" element={<RunDetail />} />
         <Route path="/runs/:id/investigate" element={<Investigation />} />
+        <Route path="/runs/:id/evaluation/waveform" element={<WaveformViewerPage />} />
       </Route>
     </Routes>
   );

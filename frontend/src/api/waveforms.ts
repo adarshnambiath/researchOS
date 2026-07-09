@@ -46,3 +46,25 @@ export const fetchWaveformRecord = (
   if (qs) url += `?${qs}`;
   return api.get<WaveformRecord>(url).then((r) => r.data);
 };
+
+/**
+ * Fetch a waveform slice from an evaluation row's provenance columns.
+ *
+ * Uses the new /runs/{runId}/evaluation/waveform endpoint which
+ * resolves run→experiment→dataset and delegates to WaveformProvider.
+ */
+export const fetchEvaluationWaveform = (
+  runId: number,
+  recordName: string,
+  windowStart: number,
+  windowEnd: number,
+) =>
+  api
+    .get<WaveformRecord>(`/api/runs/${runId}/evaluation/waveform`, {
+      params: {
+        record_name: recordName,
+        window_start: windowStart,
+        window_end: windowEnd,
+      },
+    })
+    .then((r) => r.data);
