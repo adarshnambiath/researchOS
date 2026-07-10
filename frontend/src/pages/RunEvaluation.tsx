@@ -340,7 +340,7 @@ export function RunEvaluation() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3 mb-4">
-          <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <div className="relative flex-1 min-w-50 max-w-sm">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-(--color-muted)" />
             <input type="text" placeholder="Search all columns…" value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
@@ -354,7 +354,7 @@ export function RunEvaluation() {
           {filterColumn && (
             <input type="text" placeholder="Filter value…" value={filterValue}
               onChange={(e) => setFilterValue(e.target.value)}
-              className="rounded-md border border-(--color-border) px-3 py-2 text-sm max-w-[160px]" />
+              className="rounded-md border border-(--color-border) px-3 py-2 text-sm max-w-40" />
           )}
         </div>
 
@@ -385,18 +385,24 @@ export function RunEvaluation() {
               </thead>
               <tbody className="divide-y divide-(--color-border)">
                 {rows.map((row, idx) => {
+                  const record_name = typeof row.record_name === "string" ? row.record_name : undefined;
+                  const window_start = typeof row.window_start === "number" ? row.window_start : undefined;
+                  const window_end = typeof row.window_end === "number" ? row.window_end : undefined;
+                  const sample_id = row.sample_id != null ? row.sample_id : undefined;
+
                   const hasProvenance = hasWaveforms
-                    && row.record_name && row.window_start != null && row.window_end != null;
+                    && record_name !== undefined
+                    && window_start !== undefined
+                    && window_end !== undefined;
 
                   const sampleIdHref = (() => {
-                    const sid = row.sample_id;
-                    if (sid == null || String(sid).trim() === "") return null;
+                    if (sample_id == null || String(sample_id).trim() === "") return null;
                     // Provenance-based evaluation waveform path
-                    if (row.record_name && row.window_start != null && row.window_end != null) {
-                      return `/experiments/${encodeURIComponent(String(experimentId || ""))}/runs/${encodeURIComponent(String(runId || effectiveId))}/evaluation/waveform?from=evaluation&recordName=${encodeURIComponent(String(row.record_name))}&windowStart=${encodeURIComponent(String(row.window_start))}&windowEnd=${encodeURIComponent(String(row.window_end))}&runId=${encodeURIComponent(String(runId || effectiveId))}&experimentId=${encodeURIComponent(String(experimentId || ""))}`;
+                    if (record_name && window_start !== undefined && window_end !== undefined) {
+                      return `/experiments/${encodeURIComponent(String(experimentId || ""))}/runs/${encodeURIComponent(String(runId || effectiveId))}/evaluation/waveform?from=evaluation&recordName=${encodeURIComponent(record_name)}&windowStart=${encodeURIComponent(String(window_start))}&windowEnd=${encodeURIComponent(String(window_end))}&runId=${encodeURIComponent(String(runId || effectiveId))}&experimentId=${encodeURIComponent(String(experimentId || ""))}`;
                     }
                     // Fallback: dataset waveform viewer
-                    return `/datasets/${datasetId}/waveforms/${firstWaveformName ? encodeURIComponent(firstWaveformName) : "preview"}?recordId=${encodeURIComponent(String(sid))}&from=evaluation&runId=${encodeURIComponent(String(runId || ""))}&experimentId=${encodeURIComponent(String(experimentId || ""))}`;
+                    return `/datasets/${datasetId}/waveforms/${firstWaveformName ? encodeURIComponent(firstWaveformName) : "preview"}?recordId=${encodeURIComponent(String(sample_id))}&from=evaluation&runId=${encodeURIComponent(String(runId || ""))}&experimentId=${encodeURIComponent(String(experimentId || ""))}`;
                   })();
 
                   return (
@@ -424,7 +430,7 @@ export function RunEvaluation() {
                       {hasProvenance && (
                         <td className="px-4 py-2 text-right">
                           <Link
-                            to={`/experiments/${encodeURIComponent(String(experimentId || ""))}/runs/${encodeURIComponent(String(runId || effectiveId))}/evaluation/waveform?from=evaluation&recordName=${encodeURIComponent(String(row.record_name))}&windowStart=${encodeURIComponent(String(row.window_start))}&windowEnd=${encodeURIComponent(String(row.window_end))}&runId=${encodeURIComponent(String(runId || effectiveId))}&experimentId=${encodeURIComponent(String(experimentId || ""))}`}
+                            to={`/experiments/${encodeURIComponent(String(experimentId || ""))}/runs/${encodeURIComponent(String(runId || effectiveId))}/evaluation/waveform?from=evaluation&recordName=${encodeURIComponent(String(record_name))}&windowStart=${encodeURIComponent(String(window_start))}&windowEnd=${encodeURIComponent(String(window_end))}&runId=${encodeURIComponent(String(runId || effectiveId))}&experimentId=${encodeURIComponent(String(experimentId || ""))}`}
                             className="inline-flex items-center rounded-md border border-(--color-border) px-2 py-1 text-xs font-medium text-(--color-text-secondary) hover:text-(--color-text-primary) hover:bg-(--color-card)"
                           >
                             View Waveform
@@ -483,7 +489,7 @@ export function RunEvaluation() {
                     <td className="px-4 py-2 text-(--color-text-primary)">
                       <code className="rounded bg-(--color-card) px-1 py-0.5 text-xs">{art.type}</code>
                     </td>
-                    <td className="px-4 py-2 text-(--color-muted) font-mono text-xs max-w-[300px] truncate" title={art.path}>{art.path}</td>
+                    <td className="px-4 py-2 text-(--color-muted) font-mono text-xs max-w-75 truncate" title={art.path}>{art.path}</td>
                     <td className="px-4 py-2 text-(--color-muted) text-xs">{art.timestamp || "—"}</td>
                     <td className="px-4 py-2">
                       {art.available ? (
