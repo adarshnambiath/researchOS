@@ -72,7 +72,7 @@ function ConfusionMatrix({ matrix, labels, onCellClick }: { matrix: number[][]; 
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-max text-xs border-collapse">
+      <table className="min-w-max border-separate border-spacing-1 text-sm">
         <thead>
           <tr>
             <th className="p-1" />
