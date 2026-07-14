@@ -23,9 +23,9 @@ export function DatasetDetail() {
     return () => clearSelected();
   }, [id, loadOne, loadPreview, clearSelected]);
 
-  // Only request a tabular preview for non-WFDB datasets
+  // Only request a tabular preview for tabular datasets
   useEffect(() => {
-    if (selected && selected.modality !== "ecg_wfdb" && id) {
+    if (selected && selected.modality === "tabular" && id) {
       loadPreview(Number(id));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -69,6 +69,8 @@ export function DatasetDetail() {
           <p className="text-sm text-(--color-text-secondary)">
             {selected.modality === "ecg_wfdb"
               ? `ECG (WFDB) · ${selected.row_count} records`
+              : selected.modality === "patch"
+              ? `Patch · ${selected.patch_metadata?.patch_id ?? "Unknown ID"}`
               : `${selected.modality} · ${(preview?.rows?.length ?? 0)} of ${selected.row_count} rows shown`}
           </p>
         </div>
@@ -166,6 +168,53 @@ export function DatasetDetail() {
                 </dd>
               </div>
             </>
+          ) : selected.modality === "patch" && selected.patch_metadata ? (
+            <>
+              <div>
+                <dt className="text-xs text-(--color-muted)">Dataset Type</dt>
+                <dd className="mt-1 text-sm text-(--color-text-primary)">Patch Biosensor</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-(--color-muted)">Patch ID</dt>
+                <dd className="mt-1 text-sm text-(--color-text-primary)">{selected.patch_metadata.patch_id}</dd>
+              </div>
+              {selected.patch_metadata.firmware_version != null && (
+                <div>
+                  <dt className="text-xs text-(--color-muted)">Firmware Version</dt>
+                  <dd className="mt-1 text-sm text-(--color-text-primary)">{selected.patch_metadata.firmware_version}</dd>
+                </div>
+              )}
+              {selected.patch_metadata.sensor_library_version && (
+                <div>
+                  <dt className="text-xs text-(--color-muted)">Sensor Library</dt>
+                  <dd className="mt-1 text-sm text-(--color-text-primary)">{selected.patch_metadata.sensor_library_version}</dd>
+                </div>
+              )}
+              {selected.patch_metadata.product_number && (
+                <div>
+                  <dt className="text-xs text-(--color-muted)">Product Number</dt>
+                  <dd className="mt-1 text-sm text-(--color-text-primary)">{selected.patch_metadata.product_number}</dd>
+                </div>
+              )}
+              {selected.patch_metadata.serial_number && (
+                <div>
+                  <dt className="text-xs text-(--color-muted)">Serial Number</dt>
+                  <dd className="mt-1 text-sm text-(--color-text-primary)">{selected.patch_metadata.serial_number}</dd>
+                </div>
+              )}
+              {selected.patch_metadata.patch_lifetime != null && (
+                <div>
+                  <dt className="text-xs text-(--color-muted)">Patch Lifetime</dt>
+                  <dd className="mt-1 text-sm text-(--color-text-primary)">{selected.patch_metadata.patch_lifetime} hours</dd>
+                </div>
+              )}
+              {selected.patch_metadata.start_time != null && (
+                <div>
+                  <dt className="text-xs text-(--color-muted)">Start Time</dt>
+                  <dd className="mt-1 text-sm text-(--color-text-primary)">{selected.patch_metadata.start_time}</dd>
+                </div>
+              )}
+            </>
           ) : (
             <>
               <div>
@@ -185,7 +234,7 @@ export function DatasetDetail() {
         </dl>
       </section>
 
-      {selected.modality !== "ecg_wfdb" && (
+      {selected.modality !== "ecg_wfdb" && selected.modality !== "patch" && (
         <section className="rounded-lg border border-(--color-border) p-6">
           <h3 className="text-sm font-medium text-(--color-text-primary)">Schema</h3>
         <div className="mt-4 grid grid-cols-1 gap-2">
@@ -263,6 +312,227 @@ export function DatasetDetail() {
       </section>
       )}
 
+      {selected.modality === "patch" && selected.patch_metadata && (
+        <>
+          {/* ── Files ──────────────────────────────────────────────── */}
+          <section className="rounded-lg border border-(--color-border) p-6">
+            <h3 className="text-sm font-medium text-(--color-text-primary)">Files</h3>
+            <div className="mt-4 space-y-2">
+              {selected.patch_metadata.files.length > 0 ? (
+                selected.patch_metadata.files.map((file) => (
+                  <div key={file.filename} className="flex items-center justify-between rounded-md border border-(--color-border) px-3 py-2">
+                    <div>
+                      <span className="text-sm font-medium text-(--color-text-primary)">{file.filename}</span>
+                      <p className="text-xs text-(--color-muted)">{file.relative_path}</p>
+                    </div>
+                    <span className="text-xs text-(--color-muted)">{file.purpose}</span>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-(--color-muted)">No file information available.</p>
+              )}
+            </div>
+          </section>
+
+          {/* ── Signals ────────────────────────────────────────────── */}
+          <section className="rounded-lg border border-(--color-border) p-6">
+            <h3 className="text-sm font-medium text-(--color-text-primary)">Signals</h3>
+            <div className="mt-4 space-y-2">
+              {selected.patch_metadata.signals.length > 0 ? (
+                selected.patch_metadata.signals.map((signal) => (
+                  <div key={signal.display_name} className="flex items-center justify-between rounded-md border border-(--color-border) px-3 py-2">
+                    <div>
+                      <span className="text-sm font-medium text-(--color-text-primary)">{signal.display_name}</span>
+                      <p className="text-xs text-(--color-muted)">{signal.source_file} → {signal.source_field}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {signal.units && <span className="text-xs text-(--color-muted)">{signal.units}</span>}
+                      {signal.scale_factor != null && <span className="text-xs text-(--color-muted)">×{signal.scale_factor}</span>}
+                      <span className={`text-xs ${signal.enabled ? "text-green-600" : "text-(--color-muted)"}`}>
+                        {signal.enabled ? "Enabled" : "Disabled"}
+                      </span>
+                      <Link
+                        to={`/datasets/${selected.id}/patch?signal=${encodeURIComponent(signal.source_field)}`}
+                        className="rounded-md bg-(--color-primary) px-2 py-1 text-xs font-medium text-white hover:bg-(--color-hover-button)"
+                      >
+                        View Signal
+                      </Link>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-(--color-muted)">No signal definitions available.</p>
+              )}
+            </div>
+          </section>
+
+          {/* ── Analysis Streams ───────────────────────────────────── */}
+          {selected.patch_metadata.analysis_streams.length > 0 && (
+            <section className="rounded-lg border border-(--color-border) p-6">
+              <h3 className="text-sm font-medium text-(--color-text-primary)">Analysis Streams</h3>
+              <div className="mt-4 space-y-2">
+                {selected.patch_metadata.analysis_streams.map((stream) => (
+                  <div key={stream.name} className="rounded-md border border-(--color-border) px-3 py-2">
+                    <span className="text-sm font-medium text-(--color-text-primary)">{stream.name}</span>
+                    <p className="text-xs text-(--color-muted) mt-1">
+                      Source: {stream.source_file} · Sequence field: {stream.sequence_field}
+                      {stream.timestamp_field ? ` · Timestamp field: ${stream.timestamp_field}` : ""}
+                    </p>
+                    {stream.description && (
+                      <p className="text-xs text-(--color-muted) mt-1">{stream.description}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* ── Calibration ────────────────────────────────────────── */}
+          {selected.patch_metadata.calibration && (
+            <section className="rounded-lg border border-(--color-border) p-6">
+              <h3 className="text-sm font-medium text-(--color-text-primary)">Calibration</h3>
+              <dl className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {selected.patch_metadata.calibration.ecg_conv_lo_1mv && (
+                  <div>
+                    <dt className="text-xs text-(--color-muted)">ECG Conv Lo (1mV)</dt>
+                    <dd className="mt-0.5 text-sm text-(--color-text-primary)">{selected.patch_metadata.calibration.ecg_conv_lo_1mv.join(", ")}</dd>
+                  </div>
+                )}
+                {selected.patch_metadata.calibration.ecg_conv_hi_1mv && (
+                  <div>
+                    <dt className="text-xs text-(--color-muted)">ECG Conv Hi (1mV)</dt>
+                    <dd className="mt-0.5 text-sm text-(--color-text-primary)">{selected.patch_metadata.calibration.ecg_conv_hi_1mv.join(", ")}</dd>
+                  </div>
+                )}
+                {selected.patch_metadata.calibration.resp_1_ohm && (
+                  <div>
+                    <dt className="text-xs text-(--color-muted)">Respiration (1 Ohm)</dt>
+                    <dd className="mt-0.5 text-sm text-(--color-text-primary)">{selected.patch_metadata.calibration.resp_1_ohm.join(", ")}</dd>
+                  </div>
+                )}
+                {selected.patch_metadata.calibration.temp_calib && (
+                  <div>
+                    <dt className="text-xs text-(--color-muted)">Temperature Calibration</dt>
+                    <dd className="mt-0.5 text-sm text-(--color-text-primary)">{selected.patch_metadata.calibration.temp_calib.join(", ")}</dd>
+                  </div>
+                )}
+                {selected.patch_metadata.calibration.accel_calib && (
+                  <div>
+                    <dt className="text-xs text-(--color-muted)">Accelerometer Calibration</dt>
+                    <dd className="mt-0.5 text-sm text-(--color-text-primary)">{selected.patch_metadata.calibration.accel_calib.join(", ")}</dd>
+                  </div>
+                )}
+                {selected.patch_metadata.calibration.ecg_code_permv != null && (
+                  <div>
+                    <dt className="text-xs text-(--color-muted)">ECG Code per mV</dt>
+                    <dd className="mt-0.5 text-sm text-(--color-text-primary)">{selected.patch_metadata.calibration.ecg_code_permv}</dd>
+                  </div>
+                )}
+                {selected.patch_metadata.calibration.resp_code_perohm != null && (
+                  <div>
+                    <dt className="text-xs text-(--color-muted)">Respiration Code per Ohm</dt>
+                    <dd className="mt-0.5 text-sm text-(--color-text-primary)">{selected.patch_metadata.calibration.resp_code_perohm}</dd>
+                  </div>
+                )}
+              </dl>
+            </section>
+          )}
+
+          {/* ── Scaling Definitions ────────────────────────────────── */}
+          {selected.patch_metadata.scaling_definitions.length > 0 && (
+            <section className="rounded-lg border border-(--color-border) p-6">
+              <h3 className="text-sm font-medium text-(--color-text-primary)">Scaling Definitions</h3>
+              <div className="mt-4 space-y-2">
+                {selected.patch_metadata.scaling_definitions.map((scaling) => (
+                  <div key={scaling.signal_name} className="flex items-center justify-between rounded-md border border-(--color-border) px-3 py-2">
+                    <span className="text-sm font-medium text-(--color-text-primary)">{scaling.signal_name}</span>
+                    <span className="text-xs text-(--color-muted)">
+                      raw × ({scaling.numerator}/{scaling.denominator}) → {scaling.engineering_unit}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* ── Capabilities ───────────────────────────────────────── */}
+          {selected.patch_metadata.capabilities && (
+            <section className="rounded-lg border border-(--color-border) p-6">
+              <h3 className="text-sm font-medium text-(--color-text-primary)">Capabilities</h3>
+              <dl className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {selected.patch_metadata.capabilities.ecg_supported_channels != null && (
+                  <div>
+                    <dt className="text-xs text-(--color-muted)">ECG Channels</dt>
+                    <dd className="mt-0.5 text-sm text-(--color-text-primary)">{selected.patch_metadata.capabilities.ecg_supported_channels}</dd>
+                  </div>
+                )}
+                {selected.patch_metadata.capabilities.ecg_ch_sps && (
+                  <div>
+                    <dt className="text-xs text-(--color-muted)">ECG Sample Rates (Hz)</dt>
+                    <dd className="mt-0.5 text-sm text-(--color-text-primary)">{selected.patch_metadata.capabilities.ecg_ch_sps.join(", ")}</dd>
+                  </div>
+                )}
+                {selected.patch_metadata.capabilities.respiration_config != null && (
+                  <div>
+                    <dt className="text-xs text-(--color-muted)">Respiration Config</dt>
+                    <dd className="mt-0.5 text-sm text-(--color-text-primary)">{selected.patch_metadata.capabilities.respiration_config}</dd>
+                  </div>
+                )}
+                {selected.patch_metadata.capabilities.max_patch_life != null && (
+                  <div>
+                    <dt className="text-xs text-(--color-muted)">Max Patch Life</dt>
+                    <dd className="mt-0.5 text-sm text-(--color-text-primary)">{selected.patch_metadata.capabilities.max_patch_life} hours</dd>
+                  </div>
+                )}
+                {selected.patch_metadata.capabilities.spo2_sps != null && (
+                  <div>
+                    <dt className="text-xs text-(--color-muted)">SpO₂ Sample Rate (Hz)</dt>
+                    <dd className="mt-0.5 text-sm text-(--color-text-primary)">{selected.patch_metadata.capabilities.spo2_sps}</dd>
+                  </div>
+                )}
+                {selected.patch_metadata.capabilities.broadcast_interval != null && (
+                  <div>
+                    <dt className="text-xs text-(--color-muted)">Broadcast Interval</dt>
+                    <dd className="mt-0.5 text-sm text-(--color-text-primary)">{selected.patch_metadata.capabilities.broadcast_interval}</dd>
+                  </div>
+                )}
+                {selected.patch_metadata.capabilities.dest_ip && (
+                  <div>
+                    <dt className="text-xs text-(--color-muted)">Destination IP</dt>
+                    <dd className="mt-0.5 text-sm text-(--color-text-primary)">{selected.patch_metadata.capabilities.dest_ip}</dd>
+                  </div>
+                )}
+                {selected.patch_metadata.capabilities.max_latency && (
+                  <div>
+                    <dt className="text-xs text-(--color-muted)">Max Latency</dt>
+                    <dd className="mt-0.5 text-sm text-(--color-text-primary)">{selected.patch_metadata.capabilities.max_latency.join(", ")}</dd>
+                  </div>
+                )}
+              </dl>
+            </section>
+          )}
+
+          {/* ── Relationships ──────────────────────────────────────── */}
+          {selected.patch_metadata.relationships.length > 0 && (
+            <section className="rounded-lg border border-(--color-border) p-6">
+              <h3 className="text-sm font-medium text-(--color-text-primary)">Relationships</h3>
+              <div className="mt-4 space-y-2">
+                {selected.patch_metadata.relationships.map((rel, idx) => (
+                  <div key={idx} className="rounded-md border border-(--color-border) px-3 py-2">
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="font-medium text-(--color-text-primary)">{rel.source_file}</span>
+                      <span className="text-(--color-muted)">→</span>
+                      <span className="font-medium text-(--color-text-primary)">{rel.target_file}</span>
+                    </div>
+                    <p className="mt-1 text-xs text-(--color-muted)">{rel.description}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+        </>
+      )}
+
       {editOpen && (
         <Modal title="Edit Dataset" onClose={() => setEditOpen(false)}>
           <form onSubmit={onSubmit} className="space-y-4">
@@ -282,6 +552,7 @@ export function DatasetDetail() {
               >
                 <option value="tabular">Tabular</option>
                 <option value="ecg_wfdb">ECG (WFDB)</option>
+                <option value="patch">Patch</option>
               </select>
             </FormField>
             <FormField label="Description">

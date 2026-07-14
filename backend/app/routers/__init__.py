@@ -5,6 +5,7 @@ from app.routers.outputs import router as outputs_router
 from app.routers.investigation import router as investigation_router
 from app.routers.sdk_visualization import router as sdk_visualization_router
 from app.waveform.router import router as waveforms_router
+from app.patch.router import router as patch_router
 
 __all__ = [
     "datasets_router",
@@ -15,4 +16,5 @@ __all__ = [
     "investigation_router",
     "sdk_visualization_router",
     "waveforms_router",
+    "patch_router",
 ]

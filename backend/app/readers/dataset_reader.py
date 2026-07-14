@@ -11,12 +11,69 @@ from app.schemas.dataset import (
     WFDBDatasetMetadata,
     WFDBRecordMetadata,
 )
+from app.schemas.patch import PatchMetadata
 
 
 class DatasetReader(abc.ABC):
+    """Base class for modality-specific dataset readers.
+
+    Each subclass must implement both ``register`` (to extract metadata during
+    dataset registration) and ``read_preview`` (to return a limited row-sample
+    for the detail page).
+    """
+
+    @abc.abstractmethod
+    def register(
+        self, path: str
+    ) -> tuple[int, DatasetMetadata | PatchMetadata]:
+        """Validate the source path, extract metadata, and return (row_count, metadata)."""
+        raise NotImplementedError
+
     @abc.abstractmethod
     def read_preview(self, path: str, limit: int = 20) -> tuple[list[str], list[dict[str, Any]]]:
+        """Return a limited preview of the data (columns + rows)."""
         raise NotImplementedError
+
+
+# ─── ReaderFactory ───────────────────────────────────────────────────
+# Central registry that resolves a modality string to its DatasetReader
+# implementation.  New modalities add one registration line — no changes
+# to service logic required.
+
+
+class ReaderFactory:
+    """Registry + factory for modality-specific DatasetReader implementations.
+
+    Usage::
+
+        ReaderFactory.register("tabular", TabularDatasetReader)
+        ReaderFactory.register("ecg_wfdb", WFDBDatasetReader)
+        ReaderFactory.register("patch", PatchDatasetReader)
+
+        reader = ReaderFactory.get_reader("ecg_wfdb")   # → WFDBDatasetReader()
+    """
+
+    _readers: dict[str, type[DatasetReader]] = {}
+
+    @classmethod
+    def register(cls, modality: str, reader_cls: type[DatasetReader]) -> None:
+        if not issubclass(reader_cls, DatasetReader):
+            raise TypeError(f"{reader_cls.__name__} must extend DatasetReader")
+        cls._readers[modality] = reader_cls
+
+    @classmethod
+    def get_reader(cls, modality: str) -> DatasetReader:
+        reader_cls = cls._readers.get(modality)
+        if reader_cls is None:
+            raise ValueError(
+                f"No reader registered for modality {modality!r}. "
+                f"Available modalities: {sorted(cls._readers)}"
+            )
+        return reader_cls()
+
+    @classmethod
+    def available_modalities(cls) -> list[str]:
+        return list(cls._readers.keys())
 
 
 class TabularDatasetReader(DatasetReader):

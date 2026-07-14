@@ -22,6 +22,7 @@ from app.routers import (
     experiments_router,
     investigation_router,
     outputs_router,
+    patch_router,
     runs_router,
     runs_nested_router,
     sdk_visualization_router,
@@ -66,6 +67,7 @@ app.include_router(investigation_router)
 app.include_router(runs_nested_router)
 app.include_router(sdk_visualization_router)
 app.include_router(waveforms_router)
+app.include_router(patch_router)
 
 # [Docs placeholder] Architecture overview:
 # - CORS middleware configured for Vite dev server

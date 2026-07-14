@@ -108,6 +108,9 @@ class DatasetList(BaseModel):
     model_config = {"from_attributes": True}
 
 
+from app.schemas.patch import PatchMetadata
+
+
 class DatasetDetail(BaseModel):
     id: int
     name: str
@@ -121,6 +124,7 @@ class DatasetDetail(BaseModel):
     dataset_schema: list[ColumnMetadata] | None
     waveform_definitions: list[WaveformDefinition] | None = None
     wfdb_metadata: WFDBDatasetMetadata | None = None
+    patch_metadata: PatchMetadata | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

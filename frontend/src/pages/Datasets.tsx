@@ -4,9 +4,18 @@ import { useDatasetStore } from "../stores/datasetStore";
 import { DataTable } from "../components/DataTable";
 import { EmptyState } from "../components/EmptyState";
 
+const PATCH_REQUIRED_FILES = [
+  "broadcast.json",
+  "spout.json",
+  "spout_mnb.json",
+  "sensor_lib_info.txt",
+  "spout_mnb_info.txt",
+];
+
 export function Datasets() {
   const { items, loading, error, load, create, remove } = useDatasetStore();
   const [open, setOpen] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const initialForm = {
     name: "",
     source_path: "",
@@ -52,6 +61,13 @@ export function Datasets() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setValidationErrors([]);
+
+    if (form.modality === "patch" && !form.source_path) {
+      setValidationErrors(["Patch folder path is required."]);
+      return;
+    }
+
     const waveformDefinitions = form.add_waveform && form.waveforms.length > 0
       ? form.waveforms.map((w) => ({
           name: w.name,
@@ -73,9 +89,15 @@ export function Datasets() {
       payload.sample_id_column = form.sample_id_column || undefined;
       payload.waveform_definitions = waveformDefinitions;
     }
-    await create(payload);
-    setOpen(false);
-    setForm(initialForm);
+    try {
+      await create(payload);
+      setOpen(false);
+      setForm(initialForm);
+      setValidationErrors([]);
+    } catch (err) {
+      const message = (err as any)?.response?.data?.detail || (err as Error).message;
+      setValidationErrors([message]);
+    }
   };
 
   const onRemove = async (id: number) => {
@@ -91,7 +113,7 @@ export function Datasets() {
           <p className="mt-1 text-sm text-(--color-text-secondary)">Registered data sources for model evaluation.</p>
         </div>
         <button
-          onClick={() => setOpen(true)}
+          onClick={() => { setOpen(true); setValidationErrors([]); }}
           className="inline-flex items-center gap-2 rounded-lg bg-(--color-primary) px-4 py-2 text-sm font-medium text-white hover:bg-(--color-hover-button)"
         >
           <Plus className="h-4 w-4" /> Register Dataset
@@ -130,7 +152,7 @@ export function Datasets() {
           onRowClick={(row) => (window.location.href = `/datasets/${(row as any).id}`)}
           empty={
             <EmptyState title="No datasets registered" description="Register a CSV to begin." action={
-              <button onClick={() => setOpen(true)} className="rounded-lg bg-(--color-primary) px-4 py-2 text-sm font-medium text-white hover:bg-(--color-hover-button)">Register Dataset</button>
+              <button onClick={() => { setOpen(true); setValidationErrors([]); }} className="rounded-lg bg-(--color-primary) px-4 py-2 text-sm font-medium text-white hover:bg-(--color-hover-button)">Register Dataset</button>
             } />
           }
         />
@@ -144,15 +166,39 @@ export function Datasets() {
           <FormField label="Modality" required>
             <select className="mt-1 w-full rounded-md border border-(--color-border) px-3 py-2 text-sm" value={form.modality} onChange={(e) => setForm({ ...form, modality: e.target.value })} required>
               <option value="tabular">Tabular</option>
-              <option value="ecg_wfdb">ECG (WFDB)</option>
+              <option value="ecg_wfdb">Waveform (WFDB)</option>
+              <option value="patch">Patch</option>
             </select>
           </FormField>
-          <FormField label={form.modality === "ecg_wfdb" ? "Directory" : "Source Path"} required>
-            <input className="mt-1 w-full rounded-md border border-(--color-border) px-3 py-2 text-sm" value={form.source_path} onChange={(e) => setForm({ ...form, source_path: e.target.value })} placeholder={form.modality === "ecg_wfdb" ? "/absolute/path/to/wfdb/dataset" : "/absolute/path/to/data.csv"} required />
+          <FormField label={form.modality === "ecg_wfdb" ? "Directory" : form.modality === "patch" ? "Patch Folder" : "Source Path"} required>
+            <input className="mt-1 w-full rounded-md border border-(--color-border) px-3 py-2 text-sm" value={form.source_path} onChange={(e) => setForm({ ...form, source_path: e.target.value })} placeholder={form.modality === "ecg_wfdb" ? "/absolute/path/to/wfdb/dataset" : form.modality === "patch" ? "/absolute/path/to/patch/dataset" : "/absolute/path/to/data.csv"} required />
           </FormField>
           <FormField label="Description">
             <textarea className="mt-1 w-full rounded-md border border-(--color-border) px-3 py-2 text-sm" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
           </FormField>
+          {form.modality === "patch" && form.source_path && (
+            <div className="rounded-lg border border-(--color-border) p-4">
+              <h4 className="mb-2 text-sm font-medium text-(--color-text-primary)">Required Files</h4>
+              <ul className="space-y-1">
+                {PATCH_REQUIRED_FILES.map((fname) => (
+                  <li key={fname} className="flex items-center gap-2 text-xs text-(--color-text-secondary)">
+                    <span className="h-1.5 w-1.5 rounded-full bg-(--color-muted)" />
+                    {fname}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2 text-xs text-(--color-muted)">
+                The server will validate these files exist in the selected folder on registration.
+              </p>
+            </div>
+          )}
+          {validationErrors.length > 0 && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+              {validationErrors.map((msg, i) => (
+                <p key={i} className="text-xs text-red-600">{msg}</p>
+              ))}
+            </div>
+          )}
           {form.modality === "tabular" && (
             <div className="grid grid-cols-2 gap-4">
               <FormField label="Label Column">
