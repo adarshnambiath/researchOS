@@ -16,9 +16,28 @@ class PatchSignalInfo(BaseModel):
     enabled: bool = True
 
 
+class PacketBoundary(BaseModel):
+    """Metadata for one NDJSON packet in the returned window."""
+    seq: int
+    ts_ecg: int
+    ts_epoch_us: int
+    sample_offset_start: int       # flat index of first sample of this packet
+    sample_count: int              # samples contributed by this packet for this signal
+
+
 class PatchSignalRecord(BaseModel):
     signal_info: PatchSignalInfo
-    samples: list[float]
-    start_index: int
-    end_index: int
+    samples: list[float | None]    # scaled; None for sentinel gaps
+    sampling_rate_hz: float | None = None
+    start_sample: int              # global flat offset of first sample
+    end_sample: int                # global flat offset after last sample
+    start_packet_seq: int | None = None
+    end_packet_seq: int | None = None
+    start_ts_ecg: int | None = None
+    end_ts_ecg: int | None = None
+    start_epoch_us: int | None = None
+    end_epoch_us: int | None = None
+    duration_us: int | None = None
+    packet_boundaries: list[PacketBoundary] = []
+    continuous: bool = True
     record_info: PatchRecordInfo | None = None

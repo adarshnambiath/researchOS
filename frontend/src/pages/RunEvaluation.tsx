@@ -401,7 +401,8 @@ export function RunEvaluation() {
                     if (record_name && window_start !== undefined && window_end !== undefined) {
                       return `/experiments/${encodeURIComponent(String(experimentId || ""))}/runs/${encodeURIComponent(String(runId || effectiveId))}/evaluation/waveform?from=evaluation&recordName=${encodeURIComponent(record_name)}&windowStart=${encodeURIComponent(String(window_start))}&windowEnd=${encodeURIComponent(String(window_end))}&runId=${encodeURIComponent(String(runId || effectiveId))}&experimentId=${encodeURIComponent(String(experimentId || ""))}`;
                     }
-                    // Fallback: dataset waveform viewer
+                    // Only make clickable when the dataset actually has waveform definitions
+                    if (!hasWaveforms) return null;
                     return `/datasets/${datasetId}/waveforms/${firstWaveformName ? encodeURIComponent(firstWaveformName) : "preview"}?recordId=${encodeURIComponent(String(sample_id))}&from=evaluation&runId=${encodeURIComponent(String(runId || ""))}&experimentId=${encodeURIComponent(String(experimentId || ""))}`;
                   })();
 

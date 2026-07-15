@@ -38,11 +38,15 @@ def preview_patch_signal(
 def get_patch_signal_window(
     dataset_id: int,
     signal_name: str,
-    start: int = Query(0, ge=0, description="Global sample start index for this signal"),
-    count: int = Query(500, ge=1, le=10000, description="Number of samples to return"),
+    start_sample: int = Query(0, ge=0, alias="start",
+                              description="Global sample offset for this signal"),
+    max_samples: int = Query(500, ge=1, le=10000, alias="count",
+                             description="Number of samples to return"),
     service: PatchService = Depends(get_service),
 ):
-    record = service.get_signal_window(dataset_id, signal_name, start_index=start, num_samples=count)
+    record = service.get_signal_window(dataset_id, signal_name,
+                                       start_sample=start_sample,
+                                       max_samples=max_samples)
     if not record:
         raise HTTPException(status_code=404, detail="Signal not found or dataset unreadable")
     return record

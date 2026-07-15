@@ -11,10 +11,10 @@ interface PatchViewerLayoutProps {
   record: PatchSignalRecord | null;
   loading: boolean;
   error: string | null;
-  startIndex: number;
-  windowSize: number;
-  onStartIndexChange: (idx: number) => void;
-  onWindowSizeChange: (size: number) => void;
+  startSample: number;
+  maxSamples: number;
+  onStartSampleChange: (s: number) => void;
+  onMaxSamplesChange: (m: number) => void;
   onPrev: () => void;
   onNext: () => void;
 }
@@ -26,10 +26,10 @@ export function PatchViewerLayout({
   record,
   loading,
   error,
-  startIndex,
-  windowSize,
-  onStartIndexChange,
-  onWindowSizeChange,
+  startSample,
+  maxSamples,
+  onStartSampleChange,
+  onMaxSamplesChange,
   onPrev,
   onNext,
 }: PatchViewerLayoutProps) {
@@ -48,12 +48,12 @@ export function PatchViewerLayout({
       {!loading && !error && record && (
         <PatchToolbar
           record={record}
-          startIndex={startIndex}
-          windowSize={windowSize}
+          startSample={startSample}
+          maxSamples={maxSamples}
           onPrev={onPrev}
           onNext={onNext}
-          onJump={onStartIndexChange}
-          onWindowSizeChange={onWindowSizeChange}
+          onJump={onStartSampleChange}
+          onMaxSamplesChange={onMaxSamplesChange}
         />
       )}
 

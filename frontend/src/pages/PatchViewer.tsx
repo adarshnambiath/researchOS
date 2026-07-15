@@ -22,8 +22,8 @@ export function PatchViewer() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [startIndex, setStartIndex] = useState(0);
-  const [windowSize, setWindowSize] = useState(500);
+  const [startSample, setStartSample] = useState(0);
+  const [maxSamples, setMaxSamples] = useState(500);
 
   useEffect(() => {
     setLoading(true);
@@ -38,7 +38,7 @@ export function PatchViewer() {
       });
   }, [datasetId]);
 
-  // Pre-select signal from query param when the list arrives
+  // Pre-select signal from query param
   useEffect(() => {
     if (!signals.length || active) return;
     if (signalParam) {
@@ -50,10 +50,10 @@ export function PatchViewer() {
         return;
       }
     }
-    setActive(signals[0]);
+    if (signals.length > 0) setActive(signals[0]);
   }, [signals, signalParam, active]);
 
-  // Load preview whenever the active signal or dataset changes
+  // Load preview whenever active signal changes
   useEffect(() => {
     if (!active) return;
     setLoading(true);
@@ -63,8 +63,8 @@ export function PatchViewer() {
     fetchPatchSignalPreview(datasetId, active.source_field)
       .then((data) => {
         setRecord(data);
-        setStartIndex(0);
-        setWindowSize(500);
+        setStartSample(0);
+        setMaxSamples(500);
         setLoading(false);
       })
       .catch((e) => {
@@ -81,7 +81,7 @@ export function PatchViewer() {
     if (!active) return;
     setLoading(true);
     setError(null);
-    fetchPatchSignalWindow(datasetId, active.source_field, startIndex, windowSize)
+    fetchPatchSignalWindow(datasetId, active.source_field, startSample, maxSamples)
       .then((data) => {
         setRecord(data);
         setLoading(false);
@@ -93,25 +93,25 @@ export function PatchViewer() {
   };
 
   const handlePrev = () => {
-    const step = record?.samples.length || windowSize;
-    setStartIndex((prev) => Math.max(0, prev - step));
+    const step = record?.samples.length || maxSamples;
+    setStartSample((prev) => Math.max(0, prev - step));
   };
 
   const handleNext = () => {
-    const step = record?.samples.length || windowSize;
-    setStartIndex((prev) => prev + step);
+    const step = record?.samples.length || maxSamples;
+    setStartSample((prev) => prev + step);
   };
 
-  const handleJump = (idx: number) => {
-    setStartIndex(Math.max(0, idx));
+  const handleJump = (sample: number) => {
+    setStartSample(Math.max(0, sample));
   };
 
-  // Re-load the window whenever navigation parameters change
+  // Auto-reload when navigation params change
   useEffect(() => {
     if (!active || !record) return;
     const timer = setTimeout(loadWindow, 80);
     return () => clearTimeout(timer);
-  }, [startIndex, windowSize]);
+  }, [startSample, maxSamples]);
 
   if (!datasetId) return <div className="p-6 text-sm text-(--color-muted)">Dataset not found.</div>;
 
@@ -137,10 +137,10 @@ export function PatchViewer() {
         record={record}
         loading={loading}
         error={error}
-        startIndex={startIndex}
-        windowSize={windowSize}
-        onStartIndexChange={setStartIndex}
-        onWindowSizeChange={setWindowSize}
+        startSample={startSample}
+        maxSamples={maxSamples}
+        onStartSampleChange={setStartSample}
+        onMaxSamplesChange={setMaxSamples}
         onPrev={handlePrev}
         onNext={handleNext}
       />
