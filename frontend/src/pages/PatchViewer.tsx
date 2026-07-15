@@ -22,8 +22,8 @@ export function PatchViewer() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [startSample, setStartSample] = useState(0);
-  const [maxSamples, setMaxSamples] = useState(500);
+  const [startTimeUs, setStartTimeUs] = useState(0);
+  const [durationUs, setDurationUs] = useState(1_000_000); // 1 second default
 
   useEffect(() => {
     setLoading(true);
@@ -63,8 +63,8 @@ export function PatchViewer() {
     fetchPatchSignalPreview(datasetId, active.source_field)
       .then((data) => {
         setRecord(data);
-        setStartSample(0);
-        setMaxSamples(500);
+        setStartTimeUs(0);
+        setDurationUs(1_000_000);
         setLoading(false);
       })
       .catch((e) => {
@@ -81,7 +81,9 @@ export function PatchViewer() {
     if (!active) return;
     setLoading(true);
     setError(null);
-    fetchPatchSignalWindow(datasetId, active.source_field, startSample, maxSamples)
+    const url = `/api/datasets/${datasetId}/patch/signals/${encodeURIComponent(active.source_field)}?start_time_us=${startTimeUs}&duration_us=${durationUs}`;
+    console.log(`[FRONTEND]\nstartTimeUs=${startTimeUs}\ndurationUs=${durationUs}\nGET ${url}`);
+    fetchPatchSignalWindow(datasetId, active.source_field, startTimeUs, durationUs)
       .then((data) => {
         setRecord(data);
         setLoading(false);
@@ -93,17 +95,13 @@ export function PatchViewer() {
   };
 
   const handlePrev = () => {
-    const step = record?.samples.length || maxSamples;
-    setStartSample((prev) => Math.max(0, prev - step));
+    // Step backward by one window duration
+    setStartTimeUs((prev) => Math.max(0, prev - durationUs));
   };
 
   const handleNext = () => {
-    const step = record?.samples.length || maxSamples;
-    setStartSample((prev) => prev + step);
-  };
-
-  const handleJump = (sample: number) => {
-    setStartSample(Math.max(0, sample));
+    // Step forward by one window duration
+    setStartTimeUs((prev) => prev + durationUs);
   };
 
   // Auto-reload when navigation params change
@@ -111,7 +109,7 @@ export function PatchViewer() {
     if (!active || !record) return;
     const timer = setTimeout(loadWindow, 80);
     return () => clearTimeout(timer);
-  }, [startSample, maxSamples]);
+  }, [startTimeUs, durationUs]);
 
   if (!datasetId) return <div className="p-6 text-sm text-(--color-muted)">Dataset not found.</div>;
 
@@ -137,10 +135,10 @@ export function PatchViewer() {
         record={record}
         loading={loading}
         error={error}
-        startSample={startSample}
-        maxSamples={maxSamples}
-        onStartSampleChange={setStartSample}
-        onMaxSamplesChange={setMaxSamples}
+        startTimeUs={startTimeUs}
+        durationUs={durationUs}
+        onStartTimeChange={setStartTimeUs}
+        onDurationChange={setDurationUs}
         onPrev={handlePrev}
         onNext={handleNext}
       />

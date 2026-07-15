@@ -38,6 +38,9 @@ export interface PatchSignalRecord {
   packet_boundaries: PacketBoundary[];
   continuous: boolean;
   record_info: PatchRecordInfo | null;
+  recording_start_time_us: number | null;
+  recording_end_time_us: number | null;
+  recording_duration_us: number | null;
 }
 
 export const fetchPatchSignals = (datasetId: number) =>
@@ -51,11 +54,11 @@ export const fetchPatchSignalPreview = (datasetId: number, signalName: string) =
 export const fetchPatchSignalWindow = (
   datasetId: number,
   signalName: string,
-  startSample: number,
-  maxSamples: number,
+  startTimeUs: number,
+  durationUs: number,
 ) =>
   api
     .get<PatchSignalRecord>(`/api/datasets/${datasetId}/patch/signals/${encodeURIComponent(signalName)}`, {
-      params: { start_sample: startSample, max_samples: maxSamples },
+      params: { start_time_us: startTimeUs, duration_us: durationUs },
     })
     .then((r) => r.data);

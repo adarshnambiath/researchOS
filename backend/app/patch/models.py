@@ -41,3 +41,6 @@ class PatchSignalRecord(BaseModel):
     packet_boundaries: list[PacketBoundary] = []
     continuous: bool = True
     record_info: PatchRecordInfo | None = None
+    recording_start_time_us: int | None = None
+    recording_end_time_us: int | None = None
+    recording_duration_us: int | None = None

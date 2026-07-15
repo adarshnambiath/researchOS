@@ -153,6 +153,11 @@ class PatchDatasetReader(DatasetReader):
         analysis = self._extract_analysis_definitions(os.path.join(path, "spout_mnb.json"))
         scaling = self._extract_scaling_definitions(os.path.join(path, "sensor_lib_info.txt"))
 
+        # Scan spout.json once to capture recording-level metadata.
+        # This is O(N) but happens only once at registration time,
+        # not on every window request.
+        rec_meta = _scan_spout_recording_metadata(os.path.join(path, "spout.json"))
+
         relationships = [
             PatchRelationship(
                 source_file=r["source"],
@@ -177,6 +182,10 @@ class PatchDatasetReader(DatasetReader):
             calibration=calibration,
             scaling_definitions=scaling,
             relationships=relationships,
+            recording_start_time_us=rec_meta.get("recording_start_time_us"),
+            recording_end_time_us=rec_meta.get("recording_end_time_us"),
+            recording_duration_us=rec_meta.get("recording_duration_us"),
+            total_packets=rec_meta.get("total_packets"),
         )
 
         return len(files), metadata
@@ -359,3 +368,77 @@ class PatchDatasetReader(DatasetReader):
                     )
                 )
         return scaling_defs
+
+
+def _scan_spout_recording_metadata(spout_path: str) -> dict[str, Any]:
+    """Stream spout.json once and return recording-level metadata.
+
+    This is deliberately separate from window extraction so it can be
+    called at registration time without affecting provider complexity.
+    """
+    first_ts_ecg: int | None = None
+    first_epoch: int | None = None
+    first_seq: int | None = None
+
+    last_ts_ecg: int | None = None
+    last_epoch: int | None = None
+    last_seq: int | None = None
+    last_n: int = 0
+    last_sps: float = 0.0
+
+    total_packets = 0
+    estimates_sps: float | None = None
+
+    try:
+        with open(spout_path, "r", encoding="utf-8", errors="replace") as fh:
+            for line in fh:
+                if not line.strip():
+                    continue
+                try:
+                    record = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+
+                total_packets += 1
+                packet_seq = record.get("Seq", total_packets)
+                packet_ts_ecg = record.get("TsECG", 0)
+                packet_epoch = record.get("TsEPOCH_US", 0)
+                chip_sps = record.get("sps")
+                if chip_sps:
+                    estimates_sps = float(chip_sps)
+
+                field_data = record.get("ECG_CH_A")
+                if not isinstance(field_data, list):
+                    field_data = []
+                n = len(field_data)
+
+                if n > 0:
+                    if first_ts_ecg is None:
+                        first_ts_ecg = packet_ts_ecg
+                        first_epoch = packet_epoch
+                        first_seq = packet_seq
+
+                    last_ts_ecg = packet_ts_ecg
+                    last_epoch = packet_epoch
+                    last_seq = packet_seq
+                    last_n = n
+                    last_sps = estimates_sps or 0.0
+    except Exception:
+        pass
+
+    recording_start_time_us: int | None = None
+    recording_end_time_us: int | None = None
+    recording_duration_us: int | None = None
+
+    if first_ts_ecg is not None and last_ts_ecg is not None:
+        recording_start_time_us = first_ts_ecg
+        last_packet_dur = (last_n * 1_000_000 / last_sps) if last_sps > 0 else 0
+        recording_end_time_us = last_ts_ecg + int(last_packet_dur)
+        recording_duration_us = recording_end_time_us - recording_start_time_us
+
+    return {
+        "recording_start_time_us": recording_start_time_us,
+        "recording_end_time_us": recording_end_time_us,
+        "recording_duration_us": recording_duration_us,
+        "total_packets": total_packets or None,
+    }

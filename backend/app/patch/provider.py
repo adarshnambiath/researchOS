@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from typing import Any
 
@@ -14,6 +15,8 @@ from app.patch.models import (
 
 # Sentinel values that mean "no valid reading"
 SENTINEL_VALUES = {-3, 255, 127, 32767}
+
+log = logging.getLogger(__name__)
 
 
 class PatchProvider:
@@ -118,22 +121,22 @@ class PatchProvider:
         ]
 
     def get_signal_preview(self, dataset_id: int, signal_name: str) -> PatchSignalRecord | None:
-        """Return the first window (≈ 1.5 s of the signal)."""
+        """Return the first window (≈ 1.0 s of the signal)."""
         return self.get_signal_window(
             dataset_id,
             signal_name,
-            start_sample=0,
-            max_samples=500,
+            start_time_us=0,
+            duration_us=1_000_000,
         )
 
     def get_signal_window(
         self,
         dataset_id: int,
         signal_name: str,
-        start_sample: int = 0,
-        max_samples: int = 500,
+        start_time_us: int = 0,
+        duration_us: int = 1_000_000,
     ) -> PatchSignalRecord | None:
-        """Stream only the requested slice of a single signal.
+        """Stream a time-based window of a single signal.
 
         Parameters
         ----------
@@ -141,11 +144,11 @@ class PatchProvider:
             Target dataset.
         signal_name : str
             Display name or source field of the signal.
-        start_sample : int
-            Zero-based global sample offset for this signal across all
-            packets in spout.json.
-        max_samples : int
-            Maximum number of samples to return.
+        start_time_us : int
+            Start timestamp in microseconds (TsECG-relative). The window
+            begins at the first sample whose packet covers this time.
+        duration_us : int
+            Duration of the window in microseconds (wall-clock time).
 
         Returns
         -------
@@ -168,14 +171,18 @@ class PatchProvider:
         scaling_map = self._build_scaling_map(pm)
         scale = scaling_map.get(source_field)
 
+        # ── Instrumentation ──────────────────────────────────────────
+        log.info("[PROVIDER REQUEST]\ndataset_id=%s\nsignal=%s\nstart_time_us=%s\nduration_us=%s",
+                 dataset_id, signal_name, start_time_us, duration_us)
+
         # ── Stream ───────────────────────────────────────────────────
 
-        window_end = start_sample + max_samples
         global_idx = 0
         samples: list[float | None] = []
         total_packets = 0
         packets_in_window = 0
         boundaries: list[PacketBoundary] = []
+        window_active = False
 
         first_ts_ecg: int | None = None
         last_ts_ecg: int | None = None
@@ -187,6 +194,11 @@ class PatchProvider:
         # For sampling-rate estimation: collect a few TsECG differences
         rate_accumulator: list[tuple[int, int]] = []  # [(sample_count, delta_us)]
         prev_ts_ecg: int | None = None
+
+        # Estimated samples-per-second (from chip or derived)
+        estimates_sps: float | None = None
+        us_per_sample: float = 0.0
+        packet_duration_us: float = 0.0
 
         try:
             with open(spout_path, "r", encoding="utf-8", errors="replace") as fh:
@@ -202,12 +214,25 @@ class PatchProvider:
                     packet_seq = record.get("Seq", total_packets)
                     packet_ts_ecg = record.get("TsECG", 0)
                     packet_epoch = record.get("TsEPOCH_US", 0)
+                    chip_sps = record.get("sps")
+                    if chip_sps:
+                        estimates_sps = float(chip_sps)
 
                     field_data = record.get(source_field)
                     if not isinstance(field_data, list):
                         field_data = []
 
                     n = len(field_data)
+
+                    # Track the first data packet so we can translate
+                    # relative start_time_us → absolute TsECG time.
+                    if n > 0 and first_ts_ecg is None:
+                        first_ts_ecg = packet_ts_ecg
+                        first_epoch = packet_epoch
+                        first_seq = packet_seq
+                        log.info("[FIRST DATA PACKET]\nfirst_ts_ecg=%s\nfirst_epoch_us=%s",
+                                 packet_ts_ecg, packet_epoch)
+
                     packet_start = global_idx
                     packet_end = global_idx + n
 
@@ -221,17 +246,55 @@ class PatchProvider:
                     if n > 0:
                         prev_ts_ecg = packet_ts_ecg
 
-                    # Check overlap with window
-                    if packet_end > start_sample and global_idx < window_end:
-                        # Overlaps — extract slice
-                        os0 = max(packet_start, start_sample)
-                        oe = min(packet_end, window_end)
-                        if os0 < oe:
-                            ws = os0 - packet_start
-                            we = oe - packet_start
-                            chunk = field_data[ws:we]
+                    # Compute per-sample timing
+                    sps = estimates_sps or 0
+                    us_per_sample = 1_000_000 / sps if sps > 0 else 0
+                    packet_duration_us = n * us_per_sample if us_per_sample > 0 else 0
+                    packet_end_time = packet_ts_ecg + packet_duration_us if us_per_sample > 0 else 0
 
-                            # Convert: scale + filter sentinels
+                    # ── First-five-packet debug ──────────────────────────
+                    if total_packets <= 5:
+                        log.info("PACKET %d: Seq=%s TsECG=%s TsEPOCH=%s field_len=%d sps=%s "
+                                 "us_per_sample=%s pkt_dur_us=%s pkt_end_time=%s",
+                                 total_packets, packet_seq, packet_ts_ecg, packet_epoch,
+                                 n, estimates_sps, us_per_sample, packet_duration_us, packet_end_time)
+
+                    # ── Time-based window activation ────────────────
+                    if not window_active:
+                        # first_ts_ecg is the absolute TsECG of the FIRST
+                        # data packet, captured before any window logic runs.
+                        # The frontend's start_time_us is relative to that
+                        # first-packet timestamp, so:
+                        window_start_ts = (first_ts_ecg or 0) + start_time_us
+                        window_end_ts = window_start_ts + duration_us
+                        log.info("REQ start_time_us=%s  first_ts_ecg=%s  window_start_ts=%s  window_end_ts=%s",
+                                 start_time_us, first_ts_ecg, window_start_ts, window_end_ts)
+
+                        if n > 0 and packet_ts_ecg + packet_duration_us > window_start_ts:
+                            # This packet overlaps (or starts exactly at) the requested window start
+                            window_active = True
+
+                            # Correct offset formula (relative elapsed):
+                            # how many samples into THIS packet is window_start_ts?
+                            if sps > 0 and window_start_ts > packet_ts_ecg:
+                                sample_offset = int(
+                                    (window_start_ts - packet_ts_ecg) * sps / 1_000_000
+                                )
+                                sample_offset = max(0, min(sample_offset, n - 1))
+                                ws = sample_offset
+                            else:
+                                ws = 0
+
+                            log.info("  >>> ACTIVATED on packet %d (Seq=%s): pkt_ts=%s pkt_end=%s > win_start=%s  → ws=%d",
+                                     total_packets, packet_seq, packet_ts_ecg,
+                                     packet_ts_ecg + packet_duration_us,
+                                     window_start_ts, ws)
+
+                            we = n
+                            chunk = field_data[ws:we]
+                            log.info("copying packet[%s:%s]", ws, we)
+                            boundary_offset = global_idx + ws
+
                             for v in chunk:
                                 if self._is_sentinel(v):
                                     samples.append(None)
@@ -240,45 +303,95 @@ class PatchProvider:
                                 else:
                                     samples.append(None)
 
-                            # Record packet boundary metadata
-                            if ws == 0 and we == n:
-                                # Full packet included
-                                boundaries.append(PacketBoundary(
-                                    seq=packet_seq,
-                                    ts_ecg=packet_ts_ecg,
-                                    ts_epoch_us=packet_epoch,
-                                    sample_offset_start=packet_start,
-                                    sample_count=n,
-                                ))
-                            elif ws >= 0:
-                                # Partial packet at window edge — still record it
-                                boundaries.append(PacketBoundary(
-                                    seq=packet_seq,
-                                    ts_ecg=packet_ts_ecg,
-                                    ts_epoch_us=packet_epoch,
-                                    sample_offset_start=global_idx + ws,
-                                    sample_count=we - ws,
-                                ))
+                            boundaries.append(PacketBoundary(
+                                seq=packet_seq,
+                                ts_ecg=packet_ts_ecg,
+                                ts_epoch_us=packet_epoch,
+                                sample_offset_start=boundary_offset,
+                                sample_count=we - ws,
+                            ))
 
                             if packets_in_window == 0:
-                                first_ts_ecg = packet_ts_ecg
-                                first_epoch = packet_epoch
-                                first_seq = packet_seq
+                                # first_ts_ecg was already set from the very first
+                                # data packet encountered before any window logic.
+                                pass
                             last_ts_ecg = packet_ts_ecg
                             last_epoch = packet_epoch
                             last_seq = packet_seq
+                            packets_in_window += 1
+                        elif n == 0:
+                            log.info("  SKIP packet %d: empty signal field", total_packets)
+                        else:
+                            log.info("  SKIP packet %d (Seq=%s): pkt_end=%s ≤ win_start=%s",
+                                     total_packets, packet_seq,
+                                     packet_ts_ecg + packet_duration_us,
+                                     window_start_ts)
 
+                    elif window_active:
+                        # Within active window — use relative time from
+                        # first_ts_ecg so the comparison works correctly
+                        # regardless of how large the absolute TsECG values are.
+                        elapsed_since_start = (packet_ts_ecg - first_ts_ecg) if first_ts_ecg is not None else 0
+                        log.info("  ACTIVE: packet %d TsECG=%s  rel_elapsed=%s < dur=%s ? %s  n=%s",
+                                 total_packets, packet_ts_ecg,
+                                 elapsed_since_start, duration_us,
+                                 elapsed_since_start < duration_us, n)
+                        if elapsed_since_start < duration_us and n > 0:
+                            for v in field_data:
+                                if self._is_sentinel(v):
+                                    samples.append(None)
+                                elif isinstance(v, (int, float)):
+                                    samples.append(self._apply_scale(float(v), scale))
+                                else:
+                                    samples.append(None)
+                            log.info("copying packet[0:%s]", n)
+
+                            boundaries.append(PacketBoundary(
+                                seq=packet_seq,
+                                ts_ecg=packet_ts_ecg,
+                                ts_epoch_us=packet_epoch,
+                                sample_offset_start=global_idx,
+                                sample_count=n,
+                            ))
+
+                            last_ts_ecg = packet_ts_ecg
+                            last_epoch = packet_epoch
+                            last_seq = packet_seq
                             packets_in_window += 1
 
                     global_idx += n
 
-                    if len(samples) >= max_samples and global_idx >= window_end:
+                    # Stop when relative elapsed time exceeds the requested window
+                    if window_active and first_ts_ecg is not None and (packet_ts_ecg - first_ts_ecg) >= duration_us:
+                        log.info("  STOP: packet %d TsECG=%s rel_elapsed=%s >= dur=%s  — collected %d samples",
+                                 total_packets, packet_ts_ecg,
+                                 packet_ts_ecg - first_ts_ecg, duration_us, len(samples))
                         break
         except Exception:
+            log.error("Exception during stream", exc_info=True)
             return None
 
-        # Truncate to requested window
-        samples = samples[:max_samples]
+        log.info("RESULT: collected %d samples from %d packets (total=%d)",
+                 len(samples), packets_in_window, total_packets)
+        log.info("  first_ts_ecg=%s last_ts_ecg=%s boundaries=%d",
+                 first_ts_ecg, last_ts_ecg, len(boundaries))
+        first10 = samples[:10]
+        log.info("  first10_samples=%s", first10)
+
+        if sps > 0:
+            log.info(
+                "desired_samples=%s actual_samples=%s remaining_samples=%s",
+                int(duration_us * sps / 1_000_000),
+                len(samples),
+                max(0, int(duration_us * sps / 1_000_000) - len(samples)),
+            )
+        else:
+            log.info("desired_samples=N/A actual_samples=%s remaining_samples=N/A", len(samples))
+
+        log.info("[PROVIDER RESULT]\nsamples=%d\npackets_in_window=%d",
+                 len(samples), packets_in_window)
+        log.info("first10_samples=%s", samples[:10])
+
 
         # Estimate sampling rate from accumulated data
         sampling_rate_hz: float | None = None
@@ -288,11 +401,16 @@ class PatchProvider:
             if total_us > 0:
                 sampling_rate_hz = round(total_samples / (total_us / 1_000_000), 2)
 
-        duration_us: int | None = None
+        # Compute actual duration from first/last packet timestamps
+        actual_duration_us: int | None = None
         if first_ts_ecg is not None and last_ts_ecg is not None:
-            duration_us = last_ts_ecg - first_ts_ecg
-            if duration_us is not None and duration_us < 0:
-                duration_us = None
+            actual_duration_us = last_ts_ecg - first_ts_ecg
+            # Add the last packet's remaining duration
+            if us_per_sample > 0 and boundaries:
+                last_pkt = boundaries[-1]
+                actual_duration_us += int(last_pkt.sample_count * us_per_sample)
+            if actual_duration_us is not None and actual_duration_us < 0:
+                actual_duration_us = None
 
         patch_record = PatchSignalRecord(
             signal_info=PatchSignalInfo(
@@ -304,22 +422,25 @@ class PatchProvider:
             ),
             samples=samples,
             sampling_rate_hz=sampling_rate_hz,
-            start_sample=start_sample,
-            end_sample=start_sample + len(samples),
+            start_sample=0,
+            end_sample=len(samples),
             start_packet_seq=first_seq,
             end_packet_seq=last_seq,
             start_ts_ecg=first_ts_ecg,
             end_ts_ecg=last_ts_ecg,
             start_epoch_us=first_epoch,
             end_epoch_us=last_epoch,
-            duration_us=duration_us,
+            duration_us=actual_duration_us,
             packet_boundaries=boundaries,
             continuous=True,
             record_info=PatchRecordInfo(
-                total_packets=total_packets,
+                total_packets=pm.total_packets,
                 total_samples=None,
                 packets_in_window=packets_in_window if packets_in_window > 0 else None,
             ),
+            recording_start_time_us=pm.recording_start_time_us,
+            recording_end_time_us=pm.recording_end_time_us,
+            recording_duration_us=pm.recording_duration_us,
         )
         return patch_record
 

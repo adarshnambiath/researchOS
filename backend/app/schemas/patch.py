@@ -160,6 +160,12 @@ class PatchMetadata(BaseModel):
     # Relationships
     relationships: list[PatchRelationship] = []
 
+    # Recording-level metadata (computed once during registration)
+    recording_start_time_us: int | None = None
+    recording_end_time_us: int | None = None
+    recording_duration_us: int | None = None
+    total_packets: int | None = None
+
     def to_schema_json(self) -> str:
         return self.model_dump_json()
 

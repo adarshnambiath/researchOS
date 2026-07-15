@@ -24,9 +24,9 @@ class PatchService:
         self,
         dataset_id: int,
         signal_name: str,
-        start_sample: int = 0,
-        max_samples: int = 500,
+        start_time_us: int = 0,
+        duration_us: int = 1_000_000,
     ) -> PatchSignalRecord | None:
         return self._provider.get_signal_window(
-            dataset_id, signal_name, start_sample, max_samples
+            dataset_id, signal_name, start_time_us, duration_us
         )

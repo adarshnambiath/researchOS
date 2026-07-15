@@ -11,10 +11,10 @@ interface PatchViewerLayoutProps {
   record: PatchSignalRecord | null;
   loading: boolean;
   error: string | null;
-  startSample: number;
-  maxSamples: number;
-  onStartSampleChange: (s: number) => void;
-  onMaxSamplesChange: (m: number) => void;
+  startTimeUs: number;
+  durationUs: number;
+  onStartTimeChange: (t: number) => void;
+  onDurationChange: (d: number) => void;
   onPrev: () => void;
   onNext: () => void;
 }
@@ -26,10 +26,10 @@ export function PatchViewerLayout({
   record,
   loading,
   error,
-  startSample,
-  maxSamples,
-  onStartSampleChange,
-  onMaxSamplesChange,
+  startTimeUs,
+  durationUs,
+  onStartTimeChange,
+  onDurationChange,
   onPrev,
   onNext,
 }: PatchViewerLayoutProps) {
@@ -48,12 +48,12 @@ export function PatchViewerLayout({
       {!loading && !error && record && (
         <PatchToolbar
           record={record}
-          startSample={startSample}
-          maxSamples={maxSamples}
+          startTimeUs={startTimeUs}
+          durationUs={durationUs}
           onPrev={onPrev}
           onNext={onNext}
-          onJump={onStartSampleChange}
-          onMaxSamplesChange={onMaxSamplesChange}
+          onJumpToTime={onStartTimeChange}
+          onDurationChange={onDurationChange}
         />
       )}
 

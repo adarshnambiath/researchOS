@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
@@ -8,6 +9,7 @@ from app.patch.provider import PatchProvider
 from app.repositories.dataset_repository import DatasetRepository
 
 router = APIRouter(prefix="/api/datasets/{dataset_id}/patch", tags=["patch"])
+log = logging.getLogger(__name__)
 
 
 def get_service(db: Session = Depends(get_db)) -> PatchService:
@@ -38,15 +40,17 @@ def preview_patch_signal(
 def get_patch_signal_window(
     dataset_id: int,
     signal_name: str,
-    start_sample: int = Query(0, ge=0, alias="start",
-                              description="Global sample offset for this signal"),
-    max_samples: int = Query(500, ge=1, le=10000, alias="count",
-                             description="Number of samples to return"),
+    start_time_us: int = Query(0, ge=0,
+                              description="Start timestamp in microseconds (TsECG-relative)"),
+    duration_us: int = Query(1_000_000, ge=1, le=60_000_000,
+                             description="Duration in microseconds"),
     service: PatchService = Depends(get_service),
 ):
+    log.info("[ROUTER]\nstart_time_us=%s\nduration_us=%s\nsignal=%s",
+             start_time_us, duration_us, signal_name)
     record = service.get_signal_window(dataset_id, signal_name,
-                                       start_sample=start_sample,
-                                       max_samples=max_samples)
+                                       start_time_us=start_time_us,
+                                       duration_us=duration_us)
     if not record:
         raise HTTPException(status_code=404, detail="Signal not found or dataset unreadable")
     return record
